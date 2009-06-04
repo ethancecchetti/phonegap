@@ -23,16 +23,17 @@ package com.phonegap.demo;
  */
 
 import android.content.Context;
-import android.hardware.SensorManager;
+import android.hardware.Sensor;
 import android.hardware.SensorListener;
+import android.hardware.SensorManager;
 import android.webkit.WebView;
 
 public class Orientation implements SensorListener{
 
 	private WebView mAppView;
-    private SensorManager sensorManager;
+	private SensorManager sensorManager;
 	private Context mCtx;
-    
+	
 	Orientation(WebView kit, Context ctx) {
 		mAppView = kit;
 		mCtx = ctx;
@@ -41,12 +42,21 @@ public class Orientation implements SensorListener{
 	}
 	
 	public void onSensorChanged(int sensor, final float[] values) {
-		if (sensor != SensorManager.SENSOR_ACCELEROMETER || values.length < 3)
+		if (values.length < 3)
 			return;
-        float x = values[0];
-        float y = values[1];
-        float z = values[2];
-        mAppView.loadUrl("javascript:gotAcceleration(" + x + ", " + y + "," + z + ")");
+
+		if (sensor == SensorManager.SENSOR_ACCELEROMETER) {
+			float x = values[0];
+			float y = values[1];
+			float z = values[2];
+			mAppView.loadUrl("javascript:gotAcceleration(" + x + ", " + y + "," + z + ")");
+		}
+		else if (sensor == SensorManager.SENSOR_ORIENTATION) {
+			float azimuth = values[0];
+			float pitch = values[1];
+			float roll = values[2];
+			mAppView.loadUrl("javascript:gotOrientation(" + azimuth + ", " + pitch + ", " + roll + ")");
+		}
 	}
 
 	public void onAccuracyChanged(int arg0, int arg1) {
@@ -62,8 +72,9 @@ public class Orientation implements SensorListener{
 	public void resumeAccel()
 	{
 		sensorManager.registerListener(this, 
-				   SensorManager.SENSOR_ACCELEROMETER,
+				   Sensor.TYPE_ACCELEROMETER,
 				   SensorManager.SENSOR_DELAY_GAME);
+		sensorManager.registerListener(this, Sensor.TYPE_ORIENTATION, SensorManager.SENSOR_DELAY_GAME);
 	}
 	
 }

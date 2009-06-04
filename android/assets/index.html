@@ -39,14 +39,14 @@
   	
   	var watchAccel = function() {
   		var suc = function(a){
-  			document.getElementById('x').innerHTML = roundNumber(a.x);
-  			document.getElementById('y').innerHTML = roundNumber(a.y);
-  			document.getElementById('z').innerHTML = roundNumber(a.z);
+  			document.getElementById('azimuth').innerHTML = roundNumber(a.azimuth);
+  			document.getElementById('pitch').innerHTML = roundNumber(a.pitch);
+  			document.getElementById('roll').innerHTML = roundNumber(a.roll);
   		};
   		var fail = function(){};
   		var opt = {};
   		opt.frequency = 100;
-  		timer = navigator.accelerometer.watchAcceleration(suc,fail,opt);
+  		timer = navigator.accelerometer.watchOrientation(suc,fail,opt);
   	}
     	
     function roundNumber(num) {
@@ -75,9 +75,9 @@
       <h4>UUID:   <span id="uuid">&nbsp;</span></h4>
     </div>
     <dl id="accel-data">
-      <dt>X:</dt><dd id="x">&nbsp;</dd>
-      <dt>Y:</dt><dd id="y">&nbsp;</dd>
-      <dt>Z:</dt><dd id="z">&nbsp;</dd>
+      <dt>X:</dt><dd id="azimuth">&nbsp;</dd>
+      <dt>Y:</dt><dd id="pitch">&nbsp;</dd>
+      <dt>Z:</dt><dd id="roll">&nbsp;</dd>
     </dl>
     <a href="#" class="btn large" onclick="watchAccel();">Watch Accelerometer</a>
     <a href="#" class="btn large" onclick="getLocation();">Get Location</a>

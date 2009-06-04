@@ -36,6 +36,34 @@
     	 */
     	this.timeout = 10000;
     }
+
+    /**
+     * This class contains the orientation information from the phone
+     * @constructor
+     * @param {Number} azimuth The rotation around the Z axis (0<=azimuth<360).
+     * 0 = North, 90 = East, 180 = South, 270 = West
+     * @param {Number} pitch The rotation around X axis (-180<=pitch<=180),
+     * with positive values when the z-axis moves toward the y-axis.
+     * @param {Number} roll The rotation around Y axis (-90<=roll<=90),
+     * with positive values when the z-axis moves toward the x-axis.
+     */
+    function Orientation(azimuth, pitch, roll) {
+	this.azimuth = azimuth;
+	this.pitch = pitch;
+	this.roll = roll;
+    }
+
+    /**
+     * This class specifies the options for requesting orientation data.
+     * @constructor
+     */
+    function OrientationOptions() {
+    	/**
+    	 * The timeout after which if orientation data cannot be obtained the errorCallback
+    	 * is called.
+    	 */
+    	this.timeout = 10000;
+    }
     
     
     /**
@@ -47,6 +75,11 @@
     	 * The last known acceleration.
     	 */
     	this.lastAcceleration = null;
+
+	/**
+	 * The last known orientation.
+	 */
+	this.lastOrientation = null;
     }
     
     /**
@@ -63,11 +96,38 @@
     	// If the acceleration is not available then call error
     	
     	// Created for iPhone, Iphone passes back _accel obj litteral
-    	if (typeof successCallback == "function") {
+    	if (_accel.x != null) {
     		var accel = new Acceleration(_accel.x,_accel.y,_accel.z);
     		Accelerometer.lastAcceleration = accel;
     		successCallback(accel);
     	}
+	else if {
+		errorCallback();
+	}
+    }
+
+    /**
+     * Asynchronously aquires the current orientation.
+     * @param {Function} successCallback The function to call when the orientation
+     * data is available
+     * @param {Function} errorCallback The function to call when there is an error 
+     * getting the orientation data.
+     * @param {OrientationOptions} options The options for getting the accelerometer data
+     * such as timeout.
+     */
+    Accelerometer.prototype.getCurrentOrientation = function(successCallback, errorCallback, options) {
+	// If the orientation is available then call success
+    	// If the orientation is not available then call error
+    	
+    	// Created for iPhone, Iphone passes back _accel obj litteral
+    	if (_orient.x != null) {
+    		var orient = new Orientation(_orient.x,_orient.y,_orient.z);
+    		Accelerometer.lastOrientation = orient;
+    		successCallback(orient);
+    	}
+	else {
+		errorCallback();
+	}
     }
     
     /**
@@ -86,6 +146,25 @@
      	var frequency = (options != undefined)? options.frequency : 10000;
     	return setInterval(function() {
     		navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
+    	}, frequency);
+    }
+
+    /**
+     * Asynchronously aquires the orientation repeatedly at a given interval.
+     * @param {Function} successCallback The function to call each time the orientation
+     * data is available
+     * @param {Function} errorCallback The function to call when there is an error 
+     * getting the orientation data.
+     * @param {OrientationOptions} options The options for getting the accelerometer data
+     * such as timeout.
+     */
+    
+    Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options) {
+    	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+    	// TODO: add the interval id to a list so we can clear all watches
+     	var frequency = (options != undefined)? options.frequency : 10000;
+    	return setInterval(function() {
+    		navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	}, frequency);
     }
     
@@ -577,7 +656,7 @@ Geolocation.prototype.watchPosition = function(successCallback, errorCallback, o
       this.listeners = []
   }
 
-  var key = this.listeners.push( {"success" : successCallback, "fail" : failCallback }) - 1;
+  var key = this.listeners.push( {"success" : successCallback, "fail" : errorCallback }) - 1;
 
   // TO-DO: Get the names of the method and pass them as strings to the Java.
   return Geolocation.start(frequency, key);
@@ -604,16 +683,27 @@ Geolocation.prototype.clearWatch = function(watchId)
 
 /* Identical to the iPhone, except we have to create this in the JS */
 
-_accel = {}
-_accel.x = 0;
-_accel.y = 0;
-_accel.z = 0;
+_accel = {};
+_accel.x = null;
+_accel.y = null;
+_accel.z = null;
 
-function gotAccel(x,y,z)
+_orient = {};
+_orient.azimuth = null;
+_orient.pitch = null;
+_orient.roll = null;
+
+function gotAcceleration(x,y,z)
 {
   _accel.x = x;
   _accel.y = y;
   _accel.z = z;
+}
+
+function gotOrientation(azimuth, pitch, roll) {
+  _orient.azimuth = azimuth;
+  _orient.pitch = pitch;
+  _orient.roll = roll;
 }
 
 Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
