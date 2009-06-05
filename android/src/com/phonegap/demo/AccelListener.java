@@ -28,6 +28,9 @@ public class AccelListener implements SensorListener{
 	    sensorManager.registerListener(this,
 	            SensorManager.SENSOR_ACCELEROMETER,
 	            SensorManager.SENSOR_DELAY_GAME);
+	    sensorManager.registerListener(this,
+	            SensorManager.SENSOR_ORIENTATION,
+	            SensorManager.SENSOR_DELAY_GAME);
 	}
 	
 	public void stop()
@@ -40,19 +43,21 @@ public class AccelListener implements SensorListener{
 	}
 	
 	public void onSensorChanged(int sensor, float[] values) {
-		if (sensor != SensorManager.SENSOR_ACCELEROMETER || values.length < 3)
-		      return;
-		long curTime = System.currentTimeMillis();
-		if (lastUpdate == -1 || (curTime - lastUpdate) > 1000) {
-			
-			lastUpdate = curTime;
-			
-			float x = values[DATA_X];
-			float y = values[DATA_Y];
-			float z = values[DATA_Z];
-			mAppView.loadUrl("javascript:gotAccel(" + x +  ", " + y + "," + z + " )");
-		}
-	}
-	
-	
+                if (values.length < 3)
+                        return;
+
+                if (sensor == SensorManager.SENSOR_ACCELEROMETER) {
+                        float x = values[0];
+                        float y = values[1];
+                        float z = values[2];
+                        mAppView.loadUrl("javascript:gotAcceleration(" + x + ", " + y + "," + z + ")");
+                }
+                else if (sensor == SensorManager.SENSOR_ORIENTATION) {
+                        float azimuth = values[0];
+                        float pitch = values[1];
+                        float roll = values[2];
+                        mAppView.loadUrl("javascript:gotOrientation(" + azimuth + ", " + pitch + ", " +
+ roll + ")");
+                }
+        }
 }

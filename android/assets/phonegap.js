@@ -101,7 +101,7 @@
     		Accelerometer.lastAcceleration = accel;
     		successCallback(accel);
     	}
-	else if {
+	else {
 		errorCallback();
 	}
     }
@@ -120,8 +120,8 @@
     	// If the orientation is not available then call error
     	
     	// Created for iPhone, Iphone passes back _accel obj litteral
-    	if (_orient.x != null) {
-    		var orient = new Orientation(_orient.x,_orient.y,_orient.z);
+    	if (_orient.azimuth != null) {
+    		var orient = new Orientation(_orient.azimuth,_orient.pitch,_orient.roll);
     		Accelerometer.lastOrientation = orient;
     		successCallback(orient);
     	}
@@ -143,7 +143,7 @@
     Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options) {
     	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	// TODO: add the interval id to a list so we can clear all watches
-     	var frequency = (options != undefined)? options.frequency : 10000;
+     	var frequency = (options != undefined)? options.frequency : 100;
     	return setInterval(function() {
     		navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	}, frequency);
@@ -164,7 +164,7 @@
     	// TODO: add the interval id to a list so we can clear all watches
      	var frequency = (options != undefined)? options.frequency : 10000;
     	return setInterval(function() {
-    		navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+            navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	}, frequency);
     }
     
@@ -423,54 +423,6 @@
     if (typeof navigator.notification == "undefined") navigator.notification = new Notification();
     
     
-    /**
-     * This class provides access to the device orientation.
-     * @constructor
-     */
-    function Orientation() {
-    	/**
-    	 * The last known orientation.
-    	 */
-    	this.lastOrientation = null;
-    }
-    
-    /**
-     * Asynchronously aquires the current orientation.
-     * @param {Function} successCallback The function to call when the orientation
-     * is known.
-     * @param {Function} errorCallback The function to call when there is an error 
-     * getting the orientation.
-     */
-    Orientation.prototype.getCurrentOrientation = function(successCallback, errorCallback) {
-    	// If the position is available then call success
-    	// If the position is not available then call error
-    }
-    
-    /**
-     * Asynchronously aquires the orientation repeatedly at a given interval.
-     * @param {Function} successCallback The function to call each time the orientation
-     * data is available.
-     * @param {Function} errorCallback The function to call when there is an error 
-     * getting the orientation data.
-     */
-    Orientation.prototype.watchOrientation = function(successCallback, errorCallback) {
-    	// Invoke the appropriate callback with a new Position object every time the implementation 
-    	// determines that the position of the hosting device has changed. 
-    	this.getCurrentPosition(successCallback, errorCallback);
-    	return setInterval(function() {
-    		navigator.orientation.getCurrentOrientation(successCallback, errorCallback);
-    	}, 10000);
-    }
-    
-    /**
-     * Clears the specified orientation watch.
-     * @param {String} watchId The ID of the watch returned from #watchOrientation.
-     */
-    Orientation.prototype.clearWatch = function(watchId) {
-    	clearInterval(watchId);
-    }
-    
-    if (typeof navigator.orientation == "undefined") navigator.orientation = new Orientation();
     
     
     /**
@@ -718,3 +670,10 @@ Accelerometer.prototype.clearWatch = function(watchId){
   Accel.stop();
 }
 
+
+Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
+Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
+{
+  Accel.start();
+  Accelerometer.base_orient_method(successCallback, errorCallback, options);
+}
