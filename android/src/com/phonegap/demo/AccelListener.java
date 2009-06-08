@@ -25,7 +25,7 @@ public class AccelListener implements SensorListener{
 	
 	public void start()
 	{
-	    System.out.println("Registering listener for acceleration and orientation.");
+//	    System.out.println("--- Registering listener for acceleration and orientation.");
 	    
 	    sensorManager.registerListener(this,
 	            SensorManager.SENSOR_ACCELEROMETER,
@@ -37,7 +37,7 @@ public class AccelListener implements SensorListener{
 	
 	public void stop()
 	{
-		System.out.println("Stopping accel/orient listeners.");
+//		System.out.println("--- Stopping accel/orient listeners.");
 		
 		sensorManager.unregisterListener(this);
 	}
@@ -54,14 +54,14 @@ public class AccelListener implements SensorListener{
                         float x = values[0];
                         float y = values[1];
                         float z = values[2];
-			System.out.println("Returning acceleration data: " + x + ", " + y + ", " + z);
+//			System.out.println("--- Returning acceleration data: " + x + ", " + y + ", " + z);
                         mAppView.loadUrl("javascript:gotAcceleration(" + x + ", " + y + "," + z + ")");
                 }
                 else if (sensor == SensorManager.SENSOR_ORIENTATION) {
                         float azimuth = values[0];
                         float pitch = values[1];
                         float roll = values[2];
-			System.out.println("Returning orientation data: " + azimuth + ", " + pitch + ", " + roll);
+//			System.out.println("--- Returning orientation data: " + azimuth + ", " + pitch + ", " + roll);
                         mAppView.loadUrl("javascript:gotOrientation(" + azimuth + ", " + pitch + ", " + roll + ")");
                 }
         }
