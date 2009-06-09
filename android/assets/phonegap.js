@@ -203,6 +203,14 @@
     Media.prototype.stop = function() {
 	Device.stopPlayingAudio();
     }
+
+    Media.prototype.playDTMF = function(tone) {
+	Device.playDTMF(tone);
+    }
+
+    Media.prototype.stopDTMF = function() {
+	Device.stopDTMF();
+    }
     
     
     /**

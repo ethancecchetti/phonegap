@@ -45,20 +45,22 @@ public class PhoneGap{
 	public static String platform = "Android";
 	public static String uuid;
 	private Context mCtx;
-    private WebView mAppView;
-    SmsListener mSmsListener;
-    DirectoryManager fileManager;
-    AudioHandler audio; 
+	private WebView mAppView;
+	SmsListener mSmsListener;
+	DirectoryManager fileManager;
+	AudioHandler audio;
+	ToneHandler tones;
     
 	public PhoneGap(Context ctx, WebView appView) {
-        this.mCtx = ctx;
-        this.mAppView = appView;
+		this.mCtx = ctx;
+		this.mAppView = appView;
 
-        mSmsListener = new SmsListener(ctx,mAppView);
-        fileManager = new DirectoryManager();
-        audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx);
-        uuid = getUuid();
-    }
+		mSmsListener = new SmsListener(ctx,mAppView);
+		fileManager = new DirectoryManager();
+		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx);
+		tones = new ToneHandler();
+		uuid = getUuid();
+	}
 	
 	public void beep(long pattern)
 	{
@@ -281,6 +283,14 @@ public class PhoneGap{
     
     public int getAudioOutputDevice(){
     	return audio.getAudioOutputDevice();
+    }
+
+    public void playDTMF(int tone) {
+    	tones.playDTMF(tone);
+    }
+
+    public void stopDTMF() {
+    	tones.stopDTMF();
     }
     
     public String getLine1Number() {
