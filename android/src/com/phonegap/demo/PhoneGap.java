@@ -230,18 +230,18 @@ public class PhoneGap{
      * TODO: Basic functions done but needs more work on error handling and call backs, remove record hack
      */
     
-    public void startRecordingAudio(String file)
-    {
-    	/* for this to work the recording needs to be specified in the constructor,
-    	 * a hack to get around this, I'm moving the recording after it's complete 
-    	 */
-    	audio.startRecording(file);
-    }
-    
-    public void stopRecordingAudio()
-    {
-    	audio.stopRecording();
-    }
+//    public void startRecordingAudio(String file)
+//    {
+//    	/* for this to work the recording needs to be specified in the constructor,
+//    	 * a hack to get around this, I'm moving the recording after it's complete 
+//    	 */
+//    	audio.startRecording(file);
+//    }
+//    
+//    public void stopRecordingAudio()
+//    {
+//    	audio.stopRecording();
+//    }
     
     public void startPlayingAudio(String file)
     {
@@ -251,6 +251,16 @@ public class PhoneGap{
     public void stopPlayingAudio()
     {
     	audio.stopPlaying();
+    }
+
+    public void pauseAudio()
+    {
+    	audio.pausePlaying();
+    }
+
+    public void resumeAudio()
+    {
+    	audio.resumePlaying();
     }
     
     public long getCurrentPositionAudio()

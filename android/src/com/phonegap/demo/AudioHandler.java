@@ -21,12 +21,15 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private String recording;
 	private String saveFile;
 	private Context mCtx;
+
+	private boolean isPaused = false;
 	
 	public AudioHandler(String file, Context ctx) {
-		this.recording = file;
+//		this.recording = file;
 		this.mCtx = ctx;
 	}
 	
+/*
 	protected void startRecording(String file){
 		if (!isRecording){
 			saveFile=file;
@@ -50,7 +53,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	}
 	
 	private void moveFile(String file) {
-		/* this is a hack to save the file as the specified name */
+		// this is a hack to save the file as the specified name
 		File f = new File (this.recording);
 		f.renameTo(new File("/sdcard" + file));
 	}
@@ -65,13 +68,14 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 			}
 			moveFile(saveFile);
 		}catch (Exception e){e.printStackTrace();}
-	}	
+	}
+*/	
 	
 	protected void startPlaying(String file) {
-		if (isPlaying==false) {
+		if (isPlaying == false) {
 			try {
 				mPlayer = new MediaPlayer();
-				isPlaying=true;
+				isPlaying = true;
 				Log.d("Audio startPlaying", "audio: " + file);
 				if (isStreaming(file))
 				{
@@ -83,19 +87,39 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 				} else {
 					Log.d("AudioStartPlaying", "File");
 					// Not streaming prepare synchronous, abstract base directory
-					mPlayer.setDataSource("/sdcard/" + file);
+					mPlayer.setDataSource(file);
 					mPlayer.prepare();
 				}
 				mPlayer.setOnPreparedListener(this);
 			} catch (Exception e) { e.printStackTrace(); }
 		}
-	} 
+		// Otherwise check to see if it's paused, if it is, resume
+		else if (isPaused) {
+			resumePlaying();
+		}
+	}
+	
+	protected void pausePlaying() {
+		if (isPlaying && !isPaused) {
+			mPlayer.pause();
+			isPaused = true;
+		}
+	}
+
+	protected void resumePlaying() {
+		if (isPlaying && isPaused) {
+			mPlayer.start();
+			isPaused = false;
+		}
+	}
 
 	protected void stopPlaying() {
 		if (isPlaying) {
 			mPlayer.stop();
 			mPlayer.release();
-			isPlaying=false;
+			isPlaying = 
+false;
+			isPaused = false;
 		}
 	}
 	
@@ -103,7 +127,8 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		mPlayer.stop();
 		mPlayer.release();
 		isPlaying=false;
-    } 
+		isPaused = false;
+    	} 
 	
 	protected long getCurrentPosition() {
 		if (isPlaying) 

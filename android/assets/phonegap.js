@@ -184,17 +184,24 @@
      * This class provides access to the device media, interfaces to both sound and video
      * @constructor
      */
-    function Media(src) {
-    	this.src = src;
+    function Media() {
+ //   	this.src = src;
     }
     
-    Media.prototype.play = function() {
+    Media.prototype.play = function(src) {
+	Device.startPlayingAudio(src);
     }
     
     Media.prototype.pause = function() {
+	Device.pauseAudio();
+    }
+
+    Media.prototype.resume = function() {
+	Device.resumeAudio();
     }
     
     Media.prototype.stop = function() {
+	Device.stopPlayingAudio();
     }
     
     
@@ -213,7 +220,7 @@
     MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
     
     
-    //if (typeof navigator.audio == "undefined") navigator.audio = new Media(src);
+    if (typeof navigator.audio == "undefined") navigator.audio = new Media();
     
     
     /**
