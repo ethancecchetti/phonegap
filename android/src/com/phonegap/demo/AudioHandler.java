@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.content.res.AssetFileDescriptor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnErrorListener;
@@ -23,10 +25,13 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private Context mCtx;
 
 	private boolean isPaused = false;
+	private AssetManager assets;
+	private String curPlaying = null;
 	
-	public AudioHandler(String file, Context ctx) {
+	public AudioHandler(String file, Context ctx, AssetManager assets) {
 //		this.recording = file;
 		this.mCtx = ctx;
+		this.assets = assets;
 	}
 	
 /*
@@ -72,10 +77,18 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 */	
 	
 	protected void startPlaying(String file) {
-		if (isPlaying == false) {
+		if ( !file.equals(curPlaying) ) {
 			try {
+				if (curPlaying != null) {
+					Log.d("Audio startPlaying", "New file to play, stopping " + curPlaying);
+					stopPlaying();
+				}
+				AssetFileDescriptor fileAsset = getAssetFileDesc(file);
+				
 				mPlayer = new MediaPlayer();
 				isPlaying = true;
+				isPaused = false;
+				curPlaying = file;
 				Log.d("Audio startPlaying", "audio: " + file);
 				if (isStreaming(file))
 				{
@@ -87,7 +100,12 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 				} else {
 					Log.d("AudioStartPlaying", "File");
 					// Not streaming prepare synchronous, abstract base directory
-					mPlayer.setDataSource(file);
+					if (fileAsset == null) {
+						mPlayer.setDataSource(file);
+					}
+					else {
+						mPlayer.setDataSource(fileAsset.getFileDescriptor());
+					}
 					mPlayer.prepare();
 				}
 				mPlayer.setOnPreparedListener(this);
@@ -96,6 +114,20 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		// Otherwise check to see if it's paused, if it is, resume
 		else if (isPaused) {
 			resumePlaying();
+		}
+	}
+
+	private AssetFileDescriptor getAssetFileDesc(String file) {
+		if ( !file.startsWith("file:///android_asset/") ) {
+			return null;
+		}
+		
+		try {
+			String filePath = file.substring(22);
+			return assets.openFd(filePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
 		}
 	}
 	
@@ -117,9 +149,9 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		if (isPlaying) {
 			mPlayer.stop();
 			mPlayer.release();
-			isPlaying = 
-false;
+			isPlaying = false;
 			isPaused = false;
+			curPlaying = null;
 		}
 	}
 	
@@ -128,6 +160,7 @@ false;
 		mPlayer.release();
 		isPlaying=false;
 		isPaused = false;
+		curPlaying = null;
     	} 
 	
 	protected long getCurrentPosition() {

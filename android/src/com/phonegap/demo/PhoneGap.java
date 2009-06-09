@@ -26,6 +26,7 @@ import java.util.TimeZone;
 
 import android.content.Context;
 import android.content.IntentFilter;
+import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -51,13 +52,13 @@ public class PhoneGap{
 	AudioHandler audio;
 	ToneHandler tones;
     
-	public PhoneGap(Context ctx, WebView appView) {
+	public PhoneGap(Context ctx, WebView appView, AssetManager assets) {
 		this.mCtx = ctx;
 		this.mAppView = appView;
 
 		mSmsListener = new SmsListener(ctx,mAppView);
 		fileManager = new DirectoryManager();
-		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx);
+		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx, assets);
 		tones = new ToneHandler();
 		uuid = getUuid();
 	}

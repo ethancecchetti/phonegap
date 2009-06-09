@@ -27,21 +27,35 @@
 	    navigator.notification.beep(2);
     }
 
-    var isPlaying = false;
+    var isRRPlaying = false;
+    var isOtPlaying = false;
 
-    var audioTestStart = function() {
-	if (isPlaying) {
+    var rickRollStart = function() {
+	if (isRRPlaying) {
 	    navigator.audio.pause();
-	    isPlaying = false;
+	    isRRPlaying = false;
 	}
 	else {
 //	    Console.println("Trying to start audio.");
-	    navigator.audio.play("http://hashcollision.org/tmp/audiotest.mp3");
-	    isPlaying = true;
+	    navigator.audio.play("file:///android_asset/audio/audiotest.mp3");
+	    isRRPlaying = true;
+	    isOtPlaying = false;
 	}
     }
 
-    var audioTestStop = function() {
+    var otherStart = function() {
+	if (isOtPlaying) {
+	    navigator.audio.pause();
+	    isOtPlaying = false;
+	}
+	else {
+	    navigator.audio.play("http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20A%20Winter%27s%20Tale.mp3");
+	    isRRPlaying = false;
+	    isOtPlaying = true;
+	}
+    }
+
+    var audioStop = function() {
 //	    Console.println("Trying to stop audio.");
 	    navigator.audio.stop();
 	    isPlaying = false;
@@ -107,12 +121,26 @@
       <dt>Pitch:</dt><dd id="pitch">&nbsp;</dd>
       <dt>Roll:</dt><dd id="roll">&nbsp;</dd>
     </dl>
-    <a href="#" class="btn" onclick="playDTMF(0)">DTMF 0</a>
-    <a href="#" class="btn" onclick="playDTMF(10)">DTMF 10</a>
-    <a href="#" class="btn" onclick="playDTMF(15)">DTMF 15</a>
-    <a href="#" class="btn" onclick="stopDTMF()">Stop DTMF</a>
-    <a href="#" class="btn" onclick="audioTestStart();">> / ||</a>
-    <a href="#" class="btn" onclick="audioTestStop();">[]</a>
+    <a href="#" class="btn small" onclick="playDTMF(0)">0</a>
+    <a href="#" class="btn small" onclick="playDTMF(1)">1</a>
+    <a href="#" class="btn small" onclick="playDTMF(2)">2</a>
+    <a href="#" class="btn small" onclick="playDTMF(3)">3</a>
+    <a href="#" class="btn small" onclick="playDTMF(4)">4</a>
+    <a href="#" class="btn small" onclick="playDTMF(5)">5</a>
+    <a href="#" class="btn small" onclick="playDTMF(6)">6</a>
+    <a href="#" class="btn small" onclick="playDTMF(7)">7</a>
+    <a href="#" class="btn small" onclick="playDTMF(8)">8</a>
+    <a href="#" class="btn small" onclick="playDTMF(9)">9</a>
+    <a href="#" class="btn small" onclick="playDTMF(10)">10</a>
+    <a href="#" class="btn small" onclick="playDTMF(11)">11</a>
+    <a href="#" class="btn small" onclick="playDTMF(12)">12</a>
+    <a href="#" class="btn small" onclick="playDTMF(13)">13</a>
+    <a href="#" class="btn small" onclick="playDTMF(14)">14</a>
+    <a href="#" class="btn small" onclick="playDTMF(15)">15</a>
+    <a href="#" class="btn large" onclick="stopDTMF()">Stop DTMF</a>
+    <a href="#" class="btn" onclick="rickRollStart();">RR (> / ||)</a>
+    <a href="#" class="btn" onclick="otherStart();">other (> / ||)</a>
+    <a href="#" class="btn" onclick="audioStop();">[]</a>
     <a href="#" class="btn large" onclick="watchAccel();">Watch Accelerometer</a>
     <a href="#" class="btn large" onclick="getLocation();">Get Location</a>
 	<a href="tel://411" class="btn large">Call 411</a>
