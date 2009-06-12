@@ -2,6 +2,7 @@ package com.phonegap.demo;
 
 import android.content.Context;
 import android.webkit.WebView;
+import android.util.Log;
 
 /**
  * class designed to allow phonegap to print to the console
@@ -18,11 +19,15 @@ public class ConsoleOutput {
 		mAppView = appView;
 	}
 
-	public void print(String str) {
-		System.out.print(str);
+	public void print(String msg) {
+		System.out.print(msg);
 	}
 
-	public void println(String str) {
-		System.out.println(str);
+	public void println(String msg) {
+		System.out.println(msg);
+	}
+
+	public void logd(String tag, String msg) {
+		Log.d(tag, msg);
 	}
 }

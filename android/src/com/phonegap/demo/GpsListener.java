@@ -38,15 +38,19 @@ public class GpsListener implements LocationListener {
 	
 	public GpsListener(Context ctx, int interval, GeoListener m)
 	{
+//		Log.d("GpsListener", "Making new GpsListener with interval " + interval);
 		owner = m;
 		mCtx = ctx;
 		mLocMan = (LocationManager) mCtx.getSystemService(Context.LOCATION_SERVICE);
 		mLocMan.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 0, this);
 		cLoc = mLocMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+//		Log.d("GpsListener", "Listener created");
 	}
 	
 	public Location getLocation()
 	{
+//		Log.d("GpsListener", "getting new location");
 		cLoc = mLocMan.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 		return cLoc;
 	}

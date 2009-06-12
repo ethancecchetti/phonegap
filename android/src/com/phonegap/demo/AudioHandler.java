@@ -2,6 +2,7 @@ package com.phonegap.demo;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -18,20 +19,37 @@ import android.util.Log;
 public class AudioHandler implements OnCompletionListener, OnPreparedListener, OnErrorListener {
 	private MediaRecorder recorder;
 	private boolean isRecording = false;
-	MediaPlayer mPlayer;
+//	MediaPlayer mPlayer;
 	private boolean isPlaying = false;
 	private String recording;
 	private String saveFile;
 	private Context mCtx;
+	
+	private HashMap<String, MPlayerStatus> mPlayers_file;
+	private HashMap<MediaPlayer, MPlayerStatus> mPlayers_player;
 
 	private boolean isPaused = false;
 	private AssetManager assets;
 	private String curPlaying = null;
 	
+	private class MPlayerStatus {
+		public String file;
+		public MediaPlayer player;
+		public boolean isPaused;
+		
+		public MPlayerStatus(String theFile, MediaPlayer thePlayer) {
+			file = theFile;
+			player = thePlayer;
+			isPaused = false;
+		}
+	}
+	
 	public AudioHandler(String file, Context ctx, AssetManager assets) {
 //		this.recording = file;
 		this.mCtx = ctx;
 		this.assets = assets;
+		mPlayers_file = new HashMap<String, MPlayerStatus>();
+		mPlayers_player = new HashMap<MediaPlayer, MPlayerStatus>();
 	}
 	
 /*
@@ -77,18 +95,21 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 */	
 	
 	protected void startPlaying(String file) {
-		if ( !file.equals(curPlaying) ) {
+		if ( !mPlayers_file.containsKey(file) ) {
 			try {
-				if (curPlaying != null) {
-					Log.d("Audio startPlaying", "New file to play, stopping " + curPlaying);
-					stopPlaying();
-				}
+//				if (curPlaying != null) {
+//					Log.d("Audio startPlaying", "New file to play, stopping " + curPlaying);
+//					stopPlaying();
+//				}
 				AssetFileDescriptor fileAsset = getAssetFileDesc(file);
 				
-				mPlayer = new MediaPlayer();
-				isPlaying = true;
-				isPaused = false;
-				curPlaying = file;
+				MediaPlayer mPlayer = new MediaPlayer();
+				MPlayerStatus status = new MPlayerStatus(file, mPlayer);
+				mPlayers_file.put(file, status);
+				mPlayers_player.put(mPlayer, status);
+//				isPlaying = true;
+//				isPaused = false;
+//				curPlaying = file;
 				Log.d("Audio startPlaying", "audio: " + file);
 				if (isStreaming(file))
 				{
@@ -112,8 +133,8 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 			} catch (Exception e) { e.printStackTrace(); }
 		}
 		// Otherwise check to see if it's paused, if it is, resume
-		else if (isPaused) {
-			resumePlaying();
+		else if ( mPlayers_file.get(file).isPaused ) {
+			resumePlaying(file);
 		}
 	}
 
@@ -131,40 +152,53 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		}
 	}
 	
-	protected void pausePlaying() {
-		if (isPlaying && !isPaused) {
-			mPlayer.pause();
-			isPaused = true;
+	protected void pausePlaying(String file) {
+		if ( mPlayers_file.containsKey(file) && !mPlayers_file.get(file).isPaused ) {
+			mPlayers_file.get(file).player.pause();
+			mPlayers_file.get(file).isPaused = true;
 		}
 	}
 
-	protected void resumePlaying() {
-		if (isPlaying && isPaused) {
-			mPlayer.start();
-			isPaused = false;
+	protected void resumePlaying(String file) {
+		if ( mPlayers_file.containsKey(file) && mPlayers_file.get(file).isPaused ) {
+			mPlayers_file.get(file).player.start();
+			mPlayers_file.get(file).isPaused = false;
 		}
 	}
 
-	protected void stopPlaying() {
-		if (isPlaying) {
+	protected void stopPlaying(String file) {
+		if ( mPlayers_file.containsKey(file) ) {
+			MediaPlayer mPlayer = mPlayers_file.get(file).player;
 			mPlayer.stop();
 			mPlayer.release();
-			isPlaying = false;
-			isPaused = false;
-			curPlaying = null;
+			mPlayers_file.remove(file);
+			mPlayers_player.remove(mPlayer);
 		}
 	}
 	
 	public void onCompletion(MediaPlayer mPlayer) {
 		mPlayer.stop();
 		mPlayer.release();
-		isPlaying=false;
-		isPaused = false;
-		curPlaying = null;
-    	} 
+		String file = mPlayers_player.get(mPlayer).file;
+		mPlayers_file.remove(file);
+		mPlayers_player.remove(mPlayer);
+//		isPlaying=false;
+//		isPaused = false;
+//		curPlaying = null;
+   	}
+
+	public void stopAllPlaying() {
+		for (MPlayerStatus status : mPlayers_file.values()) {
+			status.player.stop();
+			status.player.release();
+		}
+		mPlayers_file.clear();
+		mPlayers_player.clear();
+	}
 	
-	protected long getCurrentPosition() {
-		if (isPlaying) 
+	protected long getCurrentPosition(String file) {
+		MediaPlayer mPlayer = mPlayers_file.get(file).player;
+		if (mPlayer != null) 
 		{
 			return(mPlayer.getCurrentPosition());
 		} else { return(-1); }
@@ -181,28 +215,30 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	
 	protected long getDuration(String file) {
 		long duration = -2;
-		if (!isPlaying & !isStreaming(file)) {
+		if (!mPlayers_file.containsKey(file) & !isStreaming(file)) {
 			try {
-				mPlayer = new MediaPlayer();
-				mPlayer.setDataSource("/sdcard/" + file);
+				AssetFileDescriptor fileAsset = getAssetFileDesc(file);
+				MediaPlayer mPlayer = new MediaPlayer();
+				if (fileAsset == null) {
+					mPlayer.setDataSource(file);
+				}
+				else {
+					mPlayer.setDataSource(fileAsset.getFileDescriptor());
+				}
 				mPlayer.prepare();
 				duration = mPlayer.getDuration();
 				mPlayer.release();
 			} catch (Exception e) { e.printStackTrace(); return(-3); }
-		} else
-		if (isPlaying & !isStreaming(file)) {
-			duration = mPlayer.getDuration();
-		} else 
-		if (isPlaying & isStreaming(file)) {
+		} else if (mPlayers_file.containsKey(file)) {
 			try {
-				duration = mPlayer.getDuration();
+				duration = mPlayers_file.get(file).player.getDuration();
 			} catch (Exception e) { e.printStackTrace(); return(-4); }
-		}else { return -1; }
+		} else { return -1; }
 		return duration;
 	}
 
 	public void onPrepared(MediaPlayer mPlayer) {
-		if (isPlaying) {
+		if ( mPlayers_player.containsKey(mPlayer) ) {
 			mPlayer.setOnCompletionListener(this);
 			mPlayer.setOnBufferingUpdateListener(new OnBufferingUpdateListener()
 			{

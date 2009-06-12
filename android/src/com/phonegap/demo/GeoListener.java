@@ -32,7 +32,7 @@ public class GeoListener {
 		 */
 		if(id != "global")
 		{
-			mAppView.loadUrl("javascript:Geolocation.success(" + id + ", " + loc.getLatitude() + ", " + loc.getLongitude() + ")");
+			mAppView.loadUrl("javascript:navigator.geolocation.success(" + id + ", " + loc.getLatitude() + ", " + loc.getLongitude() + ")");
 		}
 		else
 		{

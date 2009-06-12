@@ -50,17 +50,21 @@ public class AccelListener implements SensorListener{
                 if (values.length < 3)
                         return;
 
+                int flipVals = 0;
+                if (values.length >= 6)
+                        flipVals = 3;
+
                 if (sensor == SensorManager.SENSOR_ACCELEROMETER) {
-                        float x = values[0];
-                        float y = values[1];
-                        float z = values[2];
+                        float x = values[flipVals];
+                        float y = values[1 + flipVals];
+                        float z = values[2 + flipVals];
 //			System.out.println("--- Returning acceleration data: " + x + ", " + y + ", " + z);
                         mAppView.loadUrl("javascript:gotAcceleration(" + x + ", " + y + "," + z + ")");
                 }
                 else if (sensor == SensorManager.SENSOR_ORIENTATION) {
-                        float azimuth = values[0];
-                        float pitch = values[1];
-                        float roll = values[2];
+                        float azimuth = values[flipVals];
+                        float pitch = values[1 + flipVals];
+                        float roll = values[2 + flipVals];
 //			System.out.println("--- Returning orientation data: " + azimuth + ", " + pitch + ", " + roll);
                         mAppView.loadUrl("javascript:gotOrientation(" + azimuth + ", " + pitch + ", " + roll + ")");
                 }

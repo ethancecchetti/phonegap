@@ -3,19 +3,26 @@ package com.phonegap.demo;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.telephony.gsm.SmsMessage;
 import android.util.Log;
 import android.webkit.WebView;
 
-public class SmsListener extends BroadcastReceiver 
+public class SmsListener extends BroadcastReceiver
 {
-	private WebView mAppView;
-	
-	public SmsListener(Context ctx, WebView mAppView) 
-	{
+    private WebView mAppView;
+    
+    public SmsListener(Context ctx, WebView mAppView) 
+    {
         this.mAppView = mAppView;
-	}
+    	
+//    	try {
+//        	ctx.registerReceiver(this, new IntentFilter(Intent.ACTION_VIEW, ACTION));
+//    	} catch (IntentFilter.MalformedMimeTypeException e) {
+//    		e.printStackTrace();
+//    	}
+    }
 
     String ACTION = "android.provider.Telephony.SMS_RECEIVED"; 
   	
@@ -31,17 +38,9 @@ public class SmsListener extends BroadcastReceiver
     		{
     			sendersNumber = msg[i].getDisplayOriginatingAddress();
     			smsContent = msg[i].getDisplayMessageBody();
+    			mAppView.loadUrl("javascript:navigator.sms.onReceiveSms('" + sendersNumber + "', '" + smsContent + "')");
     		}
-                onReceiveSMS(sendersNumber, smsContent);
         }
-    }
-        
-    protected void onReceiveSMS(String sendersNumber, String smsContent) 
-    /**
-     * Call back to Java Script
-     */
-    {
-    	mAppView.loadUrl("javascript:onReceiveSms('"+sendersNumber+"',"+"'"+ smsContent +"'"+")");
     }
         
     private SmsMessage[] getMessagesFromIntent(Intent intent)

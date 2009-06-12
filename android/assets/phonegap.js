@@ -34,7 +34,7 @@
     	 * The timeout after which if acceleration data cannot be obtained the errorCallback
     	 * is called.
     	 */
-    	this.timeout = 10000;
+    	this.timeout = 1000;
     }
 
     /**
@@ -62,7 +62,7 @@
     	 * The timeout after which if orientation data cannot be obtained the errorCallback
     	 * is called.
     	 */
-    	this.timeout = 10000;
+    	this.timeout = 1000;
     }
     
     
@@ -96,7 +96,7 @@
     	// If the acceleration is not available then call error
     	
     	// Created for iPhone, Iphone passes back _accel obj litteral
-    	if (_accel.x != null) {
+    	if (_accel.x != null && _accel.y != null && _accel.z != null) {
     		var accel = new Acceleration(_accel.x,_accel.y,_accel.z);
     		Accelerometer.lastAcceleration = accel;
     		successCallback(accel);
@@ -120,7 +120,7 @@
     	// If the orientation is not available then call error
     	
     	// Created for iPhone, Iphone passes back _accel obj litteral
-    	if (_orient.azimuth != null) {
+    	if (_orient.azimuth != null && _orient.pitch != null && _orient.roll != null) {
     		var orient = new Orientation(_orient.azimuth,_orient.pitch,_orient.roll);
     		Accelerometer.lastOrientation = orient;
     		successCallback(orient);
@@ -143,7 +143,7 @@
     Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options) {
     	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	// TODO: add the interval id to a list so we can clear all watches
-     	var frequency = (options != undefined)? options.frequency : 100;
+     	var frequency = (options != undefined)? options.frequency : 1000;
     	return setInterval(function() {
     		navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	}, frequency);
@@ -162,7 +162,7 @@
     Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options) {
     	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	// TODO: add the interval id to a list so we can clear all watches
-     	var frequency = (options != undefined)? options.frequency : 10000;
+     	var frequency = (options != undefined)? options.frequency : 1000;
     	return setInterval(function() {
             navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	}, frequency);
@@ -188,30 +188,6 @@
  //   	this.src = src;
     }
     
-    Media.prototype.play = function(src) {
-	Device.startPlayingAudio(src);
-    }
-    
-    Media.prototype.pause = function() {
-	Device.pauseAudio();
-    }
-
-    Media.prototype.resume = function() {
-	Device.resumeAudio();
-    }
-    
-    Media.prototype.stop = function() {
-	Device.stopPlayingAudio();
-    }
-
-    Media.prototype.playDTMF = function(tone) {
-	Device.playDTMF(tone);
-    }
-
-    Media.prototype.stopDTMF = function() {
-	Device.stopDTMF();
-    }
-    
     
     /**
      * This class contains information about any Media errors.
@@ -225,7 +201,7 @@
     MediaError.MEDIA_ERR_ABORTED 		= 1;
     MediaError.MEDIA_ERR_NETWORK 		= 2;
     MediaError.MEDIA_ERR_DECODE 		= 3;
-    MediaError.MEDIA_ERR_NONE_SUPPORTED = 4;
+    MediaError.MEDIA_ERR_NONE_SUPPORTED 	= 4;
     
     
     if (typeof navigator.audio == "undefined") navigator.audio = new Media();
@@ -331,6 +307,8 @@
     	 * The last known GPS position.
     	 */
     	this.lastPosition = null;
+
+	this.listeners = [];
     }
     
     /**
@@ -523,20 +501,33 @@
      * @constructor
      */
     function Sms() {
-    
+    	this.listeners = [];
     }
     
     /**
      * Sends an SMS message.
      * @param {Integer} number The phone number to send the message to.
-     * @param {String} message The contents of the SMS message to send.
+     * @param {String} msg The contents of the SMS message to send.
      * @param {Function} successCallback The function to call when the SMS message is sent.
      * @param {Function} errorCallback The function to call when there is an error sending the SMS message.
      * @param {PositionOptions} options The options for accessing the GPS location such as timeout and accuracy.
      */
-    Sms.prototype.send = function(number, message, successCallback, errorCallback, options) {
-    	
+    Sms.prototype.send = function(number, msg) {
+    	Device.sendSmsMessage(number, msg);
     }
+
+/*
+    Sms.prototype.listen = function(successCallback, errorCallback, options) {
+//	Device.smsStart();
+//    	return this.listeners.push( { "success" : successCallback, "fail" : errorCallback } ) - 1;
+    }
+
+    Sms.prototype.onReceiveSms = function(sender, msg) {
+    	for ( var i = 0; i < this.listeners.length; i++) {
+    		this.listeners[i].success(sender, msg);
+    	}
+    }
+*/
     
     if (typeof navigator.sms == "undefined") navigator.sms = new Sms();
     
@@ -567,7 +558,7 @@ Notification.prototype.vibrate = function(mills)
   Device.vibrate(mills);
 }
 
-/*
+/**
  * On the Android, we don't beep, we notify you with your 
  * notification!  We shouldn't keep hammering on this, and should
  * review what we want beep to do.
@@ -578,7 +569,42 @@ Notification.prototype.beep = function(count, volume)
   Device.beep(count);
 }
 
-/*
+
+/**
+ * Media play, pause, stop, and result methods for the android audio
+ *
+ * Also methods to play and stop DTMF tones
+ */
+Media.prototype.play = function(file) {
+    Device.startPlayingAudio(file);
+}
+    
+Media.prototype.pause = function(file) {
+    Device.pauseAudio(file);
+}
+
+Media.prototype.resume = function(file) {
+    Device.resumeAudio(file);
+}
+    
+Media.prototype.stop = function(file) {
+    Device.stopPlayingAudio(file);
+}
+
+Media.prototype.stopAll = function() {
+    Device.stopAllAudio();
+}
+
+Media.prototype.playDTMF = function(tone) {
+    Device.playDTMF(tone);
+}
+
+Media.prototype.stopDTMF = function() {
+    Device.stopDTMF();
+}
+
+
+/**
  * Since we can't guarantee that we will have the most recent, we just try our best!
  *
  * Also, the API doesn't specify which version is the best version of the API
@@ -594,6 +620,8 @@ Geolocation.prototype.getCurrentPosition = function(successCallback, errorCallba
 // Run the global callback
 Geolocation.gotCurrentPosition = function(lat, lng)
 {
+//  Console.println("Got position " + lat + ", " + lng);
+  
   if (lat == "undefined" || lng == "undefined")
   {
     this.fail();
@@ -618,24 +646,34 @@ Geolocation.prototype.watchPosition = function(successCallback, errorCallback, o
 {
   var frequency = (options != undefined)? options.frequency : 10000;
 
+//  Console.println("options.frequency = " + ((options != undefined)? options.frequency : 10000));
+
   if (!this.listeners)
   {
-      this.listeners = []
+	Console.println("Geoloc making listeners list in watchPosition");
+      this.listeners = [];
   }
 
   var key = this.listeners.push( {"success" : successCallback, "fail" : errorCallback }) - 1;
+  
+//  Console.logd("Geoloc watchPosition", "Starting to watch position. key " + key + ", freq " + frequency);
 
   // TO-DO: Get the names of the method and pass them as strings to the Java.
-  return Geolocation.start(frequency, key);
+  return Geo.start(frequency, key);
 }
 
 /*
  * Retrieve and stop this listener from listening to the GPS
  *
  */
-Geolocation.success = function(key, lat, lng)
+Geolocation.prototype.success = function(key, lat, lng)
 {
-  this.listeners[key].success(lat,lng);
+//  Console.println("Success for finding location " + lat + ", " + lng + " with key " + key);
+//  Console.println("typeof this.listeners = " + (typeof this.listeners));
+  p = {};
+  p.latitude = lat;
+  p.longitude = lng;
+  this.listeners[key].success(p);
 }
 
 Geolocation.prototype.fail = function(key)
@@ -660,35 +698,82 @@ _orient.azimuth = null;
 _orient.pitch = null;
 _orient.roll = null;
 
-function gotAcceleration(x,y,z)
-{
-  _accel.x = x;
-  _accel.y = y;
-  _accel.z = z;
+var lastRapidChange = 0;
+var lastShake = 0;
+
+var changeMagnitude = 15;
+
+function isRapidChange(accel, x, y, z) {
+    var diff = {};
+    diff.x = accel.x - x;
+    diff.y = accel.y - y;
+    diff.z = accel.z - z;
+    return Math.sqrt( (diff.x * diff.x) + (diff.y * diff.y) + (diff.z * diff.z) ) > changeMagnitude;
+}
+
+function gotAcceleration(x,y,z) {
+    if ( isRapidChange(_accel, x, y, z) ) {
+    	var curTime = new Date().getTime();
+	if (curtime - lastRapidChange < 500 && curTime - lastShake > 3000) {
+		navigator.accelerometer.gotShaken();
+		lastShake = curTime;
+	}
+	lastRapidChange = curTime;
+    }
+
+    _accel.x = x;
+    _accel.y = y;
+    _accel.z = z;
 }
 
 function gotOrientation(azimuth, pitch, roll) {
-  _orient.azimuth = azimuth;
-  _orient.pitch = pitch;
-  _orient.roll = roll;
+    _orient.azimuth = azimuth;
+    _orient.pitch = pitch;
+    _orient.roll = roll;
+}
+
+Accelerometer.prototype.watchShake = function(successCallback, errorCallback, options) {
+    if (!this.shakeListeners) {
+    	this.shakeListeners = [];
+    }
+
+    return this.shakeListeners.push({ "success" : successCallback, "fail" : errorCallback });
+}
+
+Accelerometer.prototype.gotShaken = function() {
+    if (this.shakeListeners) {
+    	for (var i = 0; i < shakeListeners.length; i++) {
+    		shakeListeners[i].success();
+    	}
+    }
+}
+
+Accelerometer.prototype.stopShakeWatch = function(shakeId) {
+    if (this.shakeListeners && this.shakeListeners[shakeId]) {
+	this.shakeListners[shakeId] = { "success" : function() {}, "fail" : function() {} };
+    }
+}
+
+Accelerometer.prototype.stopAllShakeWatches = function() {
+   this.shakeListeners = [];
 }
 
 Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
 Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options)
 {
-  Accel.start();
-  Accelerometer.base_method(successCallback, errorCallback, options);
+    Accel.start();
+    return Accelerometer.base_method(successCallback, errorCallback, options);
 }
 
 Accelerometer.prototype.clearWatch = function(watchId){
-  clearInterval(watchId);
-  Accel.stop();
+    clearInterval(watchId);
+    Accel.stop();
 }
 
 
 Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
 Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
 {
-  Accel.start();
-  Accelerometer.base_orient_method(successCallback, errorCallback, options);
+    Accel.start();
+    return Accelerometer.base_orient_method(successCallback, errorCallback, options);
 }

@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import android.content.Context;
 import android.webkit.WebView;
+import android.util.Log;
 
 /*
  * This class is the interface to the Geolocation.  It's bound to the geo object.
@@ -12,7 +13,7 @@ import android.webkit.WebView;
  */
 
 public class GeoBroker {
-    private WebView mAppView;
+	private WebView mAppView;
 	private Context mCtx;
 	private HashMap<String, GeoListener> geoListeners;
 	
@@ -20,6 +21,7 @@ public class GeoBroker {
 	{
 		mCtx = ctx;
 		mAppView = view;
+		geoListeners = new HashMap<String, GeoListener>();
 	}
 	
 	public void getCurrentLocation()
@@ -29,6 +31,7 @@ public class GeoBroker {
 	
 	public String start(int freq, String key)
 	{
+//		Log.d("GeoBroker start", "Making new GeoListener with freq " + freq + " and key " + key);
 		GeoListener listener = new GeoListener(key, mCtx, freq, mAppView);
 		geoListeners.put(key, listener);
 		return key;
@@ -36,6 +39,9 @@ public class GeoBroker {
 	
 	public void stop(String key)
 	{
-		GeoListener geo = geoListeners.get(key);
+		GeoListener geo = geoListeners.remove(key);
+		if (geo != null) {
+			geo.stop();
+		}
 	}
 }

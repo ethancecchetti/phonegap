@@ -31,11 +31,13 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.telephony.TelephonyManager;
+import android.telephony.gsm.SmsManager;
 import android.webkit.WebView;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
+import android.util.Log;
 
-public class PhoneGap{
+public class PhoneGap {
 	
 	private static final String LOG_TAG = "PhoneGap";
 	/*
@@ -251,25 +253,29 @@ public class PhoneGap{
     	audio.startPlaying(file);
     }
     
-    public void stopPlayingAudio()
+    public void stopPlayingAudio(String file)
     {
-    	audio.stopPlaying();
+    	audio.stopPlaying(file);
     }
 
-    public void pauseAudio()
+    public void pauseAudio(String file)
     {
-    	audio.pausePlaying();
+    	audio.pausePlaying(file);
     }
 
-    public void resumeAudio()
+    public void resumeAudio(String file)
     {
-    	audio.resumePlaying();
+    	audio.resumePlaying(file);
+    }
+
+    public void stopAllAudio() {
+	audio.stopAllPlaying();
     }
     
-    public long getCurrentPositionAudio()
+    public long getCurrentPositionAudio(String file)
     {
-    	System.out.println(audio.getCurrentPosition());
-    	return(audio.getCurrentPosition());
+    	System.out.println(audio.getCurrentPosition(file));
+    	return(audio.getCurrentPosition(file));
     }
     
     public long getDurationAudio(String file)
@@ -321,7 +327,16 @@ public class PhoneGap{
     public String getTimeZoneID() {
        TimeZone tz = TimeZone.getDefault();
         return(tz.getID());
-    } 
+    }
+
+    public void sendSmsMessage(String destination, String msg) {
+	Log.d("PhoneGap", "Sending SMS message '" + msg + "' to " + destination);
+    	SmsManager.getDefault().sendTextMessage(destination, null, msg, null, null);
+    }
+
+    public void smsStart() {
+//	SmsListener listener = new SmsListener(mCtx, mAppView);
+    }
     
 }
 
