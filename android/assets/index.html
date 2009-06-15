@@ -20,7 +20,7 @@
     var shakeAndRing = function() {
     	if (stopShakeWatch == null) {
     	    Console.println("Starting shake listener.");
-    	    var suc = function() {navigator.notification.beep(2);};
+   	    var suc = function() {rickRollStart();};
     	    var fail = function() {Console.println("Shake watching failed.");};
 
 //    	    Console.println("typeof shakeWatchId = " + (typeof shakeWatchId));
@@ -75,30 +75,29 @@
     var webFile = "http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20Midnight%20Sun.mp3";
 
     var rickRollStart = function() {
-    	if (isRRPlaying) {
-//    	    Console.println("Pausing Rick Roll.");
-    	    navigator.audio.pause(rickRollFile);
-    	    isRRPlaying = false;
-    	}
-    	else {
-
-//    	    Console.println("Starting Rick Roll.");
-    	    navigator.audio.play(rickRollFile);
-    	    isRRPlaying = true;
-    	    isOtPlaying = false;
-    	}
+	if (isRRPlaying) {
+//	    Console.println("Pausing Rick Roll.");
+	    navigator.audio.pause(rickRollFile);
+	    isRRPlaying = false;
+	}
+	else {
+//	    Console.println("Starting Rick Roll.");
+	    navigator.audio.play(rickRollFile);
+	    isRRPlaying = true;
+	    isOtPlaying = false;
+	}
     }
 
     var webStart = function() {
-    	if (isOtPlaying) {
-    	    navigator.audio.pause(webFile);
-    	    isOtPlaying = false;
-    	}
-    	else {
-    	    navigator.audio.play(webFile);
-    	    isRRPlaying = false;
-    	    isOtPlaying = true;
-    	}
+	if (isOtPlaying) {
+	    navigator.audio.pause(webFile);
+	    isOtPlaying = false;
+	}
+	else {
+	    navigator.audio.play(webFile);
+	    isRRPlaying = false;
+	    isOtPlaying = true;
+	}
     }
 
     var rickRollStop = function() {
@@ -108,7 +107,8 @@
     }
 
     var stopAllAudio = function() {
-    	navigator.audio.stopAll();
+    	Console.println("Stopping all audio (index.html)");
+	navigator.audio.stopAll();
     }
 	
 	var webStop = function() {

@@ -620,6 +620,9 @@ Media.prototype.stop = function(file) {
 }
 
 Media.prototype.stopAll = function() {
+    Console.println("Stopping all audio (phonegap.js)");
+    Console.println("typeof Device = " + (typeof Device));
+    Console.println("typeof Device.stopAllAudio = " + (typeof Device.stopAllAudio));
     Device.stopAllAudio();
 }
 
