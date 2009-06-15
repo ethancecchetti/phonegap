@@ -80,6 +80,10 @@
 	 * The last known orientation.
 	 */
 	this.lastOrientation = null;
+
+	this.shakeListeners = [];
+	this.orientListeners = [];
+	this.accelListeners = [];
     }
     
     /**
@@ -759,13 +763,32 @@ function gotOrientation(azimuth, pitch, roll) {
     _orient.roll = roll;
 }
 
+Accelerometer.prototype.allListenersEmpty = function() {
+    return (this.shakeListeners.length == 0 &&
+            this.orientListeners.length == 0 &&
+            this.accelListeners.length == 0);
+}
+
 Accelerometer.prototype.watchShake = function(successCallback, errorCallback, options) {
-    if (!this.shakeListeners) {
-    	this.shakeListeners = [];
-    }
+//    if (!this.shakeListeners) {
+//    	this.shakeListeners = [];
+//    }
     Accel.start();
 
-    return this.shakeListeners.push({ "success" : successCallback, "fail" : errorCallback });
+    var callBacks = { "success" : successCallback, "fail" : errorCallback };
+    this.shakeListeners.push(callBacks);
+    var that = this;
+    return function() {
+    	var index = that.shakeListeners.indexOf(callBacks);
+    	Console.println("Removing the shake listener at index " + index);
+    	if (index != -1)
+    	    that.shakeListeners.splice(index, 1);
+
+    	if (navigator.accelerometer.allListenersEmpty()) {
+    	    Console.println("Stopping Accel");
+    	    Accel.stop();
+    	}
+    };
 }
 
 Accelerometer.prototype.gotShaken = function() {
@@ -776,34 +799,54 @@ Accelerometer.prototype.gotShaken = function() {
     }
 }
 
-Accelerometer.prototype.stopShakeWatch = function(shakeId) {
-    if (this.shakeListeners && this.shakeListeners[shakeId]) {
-	this.shakeListners[shakeId] = { "success" : function() {}, "fail" : function() {} };
-    }
-    Accel.stop();
-}
+//Accelerometer.prototype.stopShakeWatch = function(shakeId) {
+//    if (this.shakeListeners && this.shakeListeners[shakeId]) {
+//	this.shakeListners[shakeId] = { "success" : function() {}, "fail" : function() {} };
+//    }
+//    Accel.stop();
+//}
 
 Accelerometer.prototype.stopAllShakeWatches = function() {
     this.shakeListeners = [];
-    Accel.stop();
+    if (navigator.accelerometer.allListenersEmpty())
+    	Accel.stop();
 }
 
 Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
 Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options)
 {
     Accel.start();
-    return Accelerometer.base_method(successCallback, errorCallback, options);
+    var id = Accelerometer.base_method(successCallback, errorCallback, options);
+    this.accelListeners.push(id);
+    return id;
 }
 
-Accelerometer.prototype.clearWatch = function(watchId){
-    clearInterval(watchId);
-    Accel.stop();
+Accelerometer.prototype.clearAccelerationWatch = function(watchId){
+    navigator.accelerometer.clearTypeWatch(this.accelListeners, watchId);
 }
-
 
 Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
 Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
 {
     Accel.start();
-    return Accelerometer.base_orient_method(successCallback, errorCallback, options);
+    var id = Accelerometer.base_orient_method(successCallback, errorCallback, options);
+    this.orientListeners.push(id);
+    return id;
 }
+
+Accelerometer.prototype.clearOrientationWatch = function(watchId) {
+    navigator.accelerometer.clearTypeWatch(this.orientListeners, watchId);
+}
+
+Accelerometer.prototype.clearTypeWatch = function(list, watchId) {
+    clearInterval(watchId);
+    var index = list.indexOf(watchId);
+    if (index != -1)
+    	list.splice(index, 1);
+
+    if (navigator.accelerometer.allListenersEmpty()) {
+    	Console.println("Stopping accel");
+    	Accel.stop();
+    }
+}
+

@@ -98,9 +98,6 @@ public class DroidGap extends Activity {
     	appView.addJavascriptInterface(geo, "Geo");
     	appView.addJavascriptInterface(accel, "Accel");
 	appView.addJavascriptInterface(console, "Console");
-	
-//	AudioHandler audio = new AudioHandler("", this);
-//	appView.addJavascriptInterface(audio, "Audio");
     }
         
     /**

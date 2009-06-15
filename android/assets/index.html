@@ -15,11 +15,11 @@
       document.getElementById("uuid").innerHTML = Device.getUuid();
     }
     
-    var shakeWatchId = null;
+    var stopShakeWatch = null;
 
     var shakeAndRing = function() {
-    	if (shakeWatchId == null) {
-//    	    Console.println("Starting shake listener.");
+    	if (stopShakeWatch == null) {
+    	    Console.println("Starting shake listener.");
     	    var suc = function() {navigator.notification.beep(2);};
     	    var fail = function() {Console.println("Shake watching failed.");};
 
@@ -27,12 +27,12 @@
 //    	    Console.println("typeof navigator.accelerometer = " + (typeof navigator.accelerometer));
 //    	    Console.println("typeof watchShake = " + (typeof navigator.accelerometer.watchShake));
 
-            shakeWatchId = navigator.accelerometer.watchShake(suc, fail);
+            stopShakeWatch = navigator.accelerometer.watchShake(suc, fail);
     	}
     	else {
-//    	    Console.println("Stopping shake listener.");
-    	    navigator.accelerometer.stopShakeWatch(shakeWatchId);
-    	    shakeWatchId = null;
+    	    Console.println("Stopping shake listener.");
+    	    stopShakeWatch();
+    	    stopShakeWatch = null;
     	}
     }
 
