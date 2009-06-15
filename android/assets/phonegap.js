@@ -188,6 +188,30 @@
  //   	this.src = src;
     }
     
+    Media.prototype.play = function(file) {
+	Device.startPlayingAudio(file);
+    }
+    
+    Media.prototype.pause = function(file) {
+	Device.pauseAudio(file);
+    }
+
+    Media.prototype.resume = function(file) {
+	Device.resumeAudio(file);
+    }
+    
+    Media.prototype.stop = function(file) {
+	Device.stopPlayingAudio(file);
+    }
+
+    Media.prototype.playDTMF = function(tone) {
+	Device.playDTMF(tone);
+    }
+
+    Media.prototype.stopDTMF = function() {
+	Device.stopDTMF();
+    }
+
     
     /**
      * This class contains information about any Media errors.
@@ -701,7 +725,7 @@ _orient.roll = null;
 var lastRapidChange = 0;
 var lastShake = 0;
 
-var changeMagnitude = 15;
+var changeMagnitude = 7.5;
 
 function isRapidChange(accel, x, y, z) {
     var diff = {};
@@ -712,9 +736,12 @@ function isRapidChange(accel, x, y, z) {
 }
 
 function gotAcceleration(x,y,z) {
+//    Console.println("Got accel: " + x + ", " + y + ", " + z);
     if ( isRapidChange(_accel, x, y, z) ) {
     	var curTime = new Date().getTime();
-	if (curtime - lastRapidChange < 500 && curTime - lastShake > 3000) {
+//    	Console.println("Rapid accel change at " + curTime);
+	if (curTime - lastRapidChange < 500 && curTime - lastShake > 2000) {
+//    	    	Console.println("Phone got shaken at " + curTime);
 		navigator.accelerometer.gotShaken();
 		lastShake = curTime;
 	}
@@ -736,14 +763,15 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
     if (!this.shakeListeners) {
     	this.shakeListeners = [];
     }
+    Accel.start();
 
     return this.shakeListeners.push({ "success" : successCallback, "fail" : errorCallback });
 }
 
 Accelerometer.prototype.gotShaken = function() {
     if (this.shakeListeners) {
-    	for (var i = 0; i < shakeListeners.length; i++) {
-    		shakeListeners[i].success();
+    	for (var i = 0; i < this.shakeListeners.length; i++) {
+    		this.shakeListeners[i].success();
     	}
     }
 }
@@ -752,10 +780,12 @@ Accelerometer.prototype.stopShakeWatch = function(shakeId) {
     if (this.shakeListeners && this.shakeListeners[shakeId]) {
 	this.shakeListners[shakeId] = { "success" : function() {}, "fail" : function() {} };
     }
+    Accel.stop();
 }
 
 Accelerometer.prototype.stopAllShakeWatches = function() {
-   this.shakeListeners = [];
+    this.shakeListeners = [];
+    Accel.stop();
 }
 
 Accelerometer.base_method = Accelerometer.prototype.watchAcceleration

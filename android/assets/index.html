@@ -15,6 +15,27 @@
       document.getElementById("uuid").innerHTML = Device.getUuid();
     }
     
+    var shakeWatchId = null;
+
+    var shakeAndRing = function() {
+    	if (shakeWatchId == null) {
+//    	    Console.println("Starting shake listener.");
+    	    var suc = function() {navigator.notification.beep(2);};
+    	    var fail = function() {Console.println("Shake watching failed.");};
+
+//    	    Console.println("typeof shakeWatchId = " + (typeof shakeWatchId));
+//    	    Console.println("typeof navigator.accelerometer = " + (typeof navigator.accelerometer));
+//    	    Console.println("typeof watchShake = " + (typeof navigator.accelerometer.watchShake));
+
+            shakeWatchId = navigator.accelerometer.watchShake(suc, fail);
+    	}
+    	else {
+//    	    Console.println("Stopping shake listener.");
+    	    navigator.accelerometer.stopShakeWatch(shakeWatchId);
+    	    shakeWatchId = null;
+    	}
+    }
+
     var getLocation = function() {
       var suc = function(p){
 		alert(p.latitude + " " + p.longitude);
@@ -161,6 +182,7 @@
     <h1>Welcome to PhoneGap!</h1>
     <h2>this file is located at assets/index.html</h2>
     <h2><a href="file:///android_asset/Bubble2/world.html">Bubble2</a></h2>
+    <h2><a href="file:///android_asset/ShakeToRing/world.html">Danny's Shake</a></h2>
     <div id="info">
       <h4>Platform: <span id="platform">&nbsp;</span></h4>
       <h4>Version: <span id="version">&nbsp;</span></h4>
@@ -182,6 +204,7 @@
     	<input type="text" id="message" />
         <input type="submit" value="Send Sms" class="btn large" onclick="sendSms()" />
     </form>
+    <a href="#" class="btn large" onclick="shakeAndRing();">Shake and Ring</a>
     <a href="#" class="btn large" onclick="watchAccel();">Watch Accelerometer</a>
     <a href="#" class="btn large" onclick="watchLocation();">Watch Location</a>
     <a href="#" class="btn large" onclick="getLocation();">Get Location</a>
