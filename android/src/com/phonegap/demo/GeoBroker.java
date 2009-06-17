@@ -44,4 +44,12 @@ public class GeoBroker {
 			geo.stop();
 		}
 	}
+
+	public void stop()
+	{
+		for ( GeoListener geo : geoListeners.values() ) {
+			geo.stop();
+		}
+		geoListeners.clear();
+	}
 }

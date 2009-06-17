@@ -337,6 +337,11 @@ public class PhoneGap {
     public void smsStart() {
 //	SmsListener listener = new SmsListener(mCtx, mAppView);
     }
+
+    public void stop() {
+    	stopAllAudio();
+    	stopDTMF();
+    }
     
 }
 

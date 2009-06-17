@@ -71,7 +71,7 @@
 
     var isRRPlaying = false;
     var isOtPlaying = false;
-    var rickRollFile = "file:///android_asset/audio/audiotest.mp3";
+    var rickRollFile = "file:///android_asset/audio/Sweet Child.mp3";
     var webFile = "http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20Midnight%20Sun.mp3";
 
     var rickRollStart = function() {
@@ -107,7 +107,7 @@
     }
 
     var stopAllAudio = function() {
-    	Console.println("Stopping all audio (index.html)");
+//    	Console.println("Stopping all audio (index.html)");
 	navigator.audio.stopAll();
     }
 	
@@ -126,10 +126,10 @@
   		navigator.ContactManager.get(suc, fail);
   	}
   	
-	var accelWatchId = null;
+	var stopAccelWatch = null;
 
   	var watchAccel = function() {
-	    if (accelWatchId == null) {
+	    if (stopAccelWatch == null) {
 //		Console.println("Starting accel watch");
   		var suc = function(a){
   			document.getElementById('azimuth').innerHTML = roundNumber(a.azimuth);
@@ -139,17 +139,18 @@
   		var fail = function(){};
   		var opt = {};
   		opt.frequency = 100;
-  		accelWatchId = navigator.accelerometer.watchOrientation(suc,fail);
+  		stopAccelWatch = navigator.accelerometer.watchOrientation(suc,fail);
 	    }
 	    else {
 //		Console.println("Stopping accel watch");
-		navigator.accelerometer.clearWatch(accelWatchId);
-		accelWatchId = null;
+		stopAccelWatch();
+		stopAccelWatch = null;
 	    }
   	}
 
 	var playDTMF = function(tone) {
 		navigator.audio.playDTMF(tone);
+    	    	setTimeout(navigator.audio.stopDTMF, 3000);
 	}
 
 	var stopDTMF = function() {
@@ -183,7 +184,7 @@
     <h1>Welcome to PhoneGap!</h1>
     <h2>this file is located at assets/index.html</h2>
     <h2><a href="file:///android_asset/Bubble2/world.html">Bubble2</a></h2>
-    <h2><a href="file:///android_asset/ShakeToRing/world.html">Danny's Shake</a></h2>
+    <h2><a href="file:///android_asset/ShakeToDtmf/world.html">DMTF Shake</a></h2>
     <div id="info">
       <h4>Platform: <span id="platform">&nbsp;</span></h4>
       <h4>Version: <span id="version">&nbsp;</span></h4>
