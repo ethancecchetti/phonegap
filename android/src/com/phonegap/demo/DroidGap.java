@@ -106,9 +106,11 @@ public class DroidGap extends Activity {
     }
 
     public void onStop() {
+    	System.out.println("Stopping everything");
     	gap.stop();
     	geo.stop();
     	accel.stop();
+    	super.onStop();
     }
         
     /**

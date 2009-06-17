@@ -31,7 +31,10 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private boolean isPaused = false;
 	private AssetManager assets;
 	private String curPlaying = null;
+	private AudioManager volumeControl;
 	
+	private static final int MUSIC_STREAM = AudioManager.STREAM_MUSIC;
+
 	private class MPlayerStatus {
 		public String file;
 		public MediaPlayer player;
@@ -48,6 +51,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 //		this.recording = file;
 		this.mCtx = ctx;
 		this.assets = assets;
+		volumeControl = (AudioManager) mCtx.getSystemService(Context.AUDIO_SERVICE);
 		mPlayers_file = new HashMap<String, MPlayerStatus>();
 		mPlayers_player = new HashMap<MediaPlayer, MPlayerStatus>();
 	}
@@ -83,8 +87,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	
 	protected void stopRecording(){
 		try{
-			if((recorder != null)&&(isRecording))
-			{
+			if((recorder != null)&&(isRecording)) {
 				isRecording = false;
 				recorder.stop();
 		        recorder.release(); 
@@ -116,7 +119,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 					Log.d("AudioStartPlaying", "Streaming");
 					// Streaming prepare async
 					mPlayer.setDataSource(file);
-					mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);  
+					mPlayer.setAudioStreamType(MUSIC_STREAM);  
 					mPlayer.prepareAsync();
 				} else {
 					Log.d("AudioStartPlaying", "File");
@@ -194,6 +197,26 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		}
 		mPlayers_file.clear();
 		mPlayers_player.clear();
+	}
+
+	public void increaseVolume() {
+		volumeControl.adjustStreamVolume(MUSIC_STREAM,
+		                                 AudioManager.ADJUST_RAISE,
+		                                 0);
+	}
+
+	public void decreaseVolume() {
+		volumeControl.adjustStreamVolume(MUSIC_STREAM,
+		                                 AudioManager.ADJUST_LOWER,
+		                                 0);
+	}
+
+	public boolean setVolume(int vol) {
+		if (vol < 0 || vol < volumeControl.getStreamMaxVolume(MUSIC_STREAM))
+			return false;
+
+		volumeControl.setStreamVolume(MUSIC_STREAM, vol, 0);
+		return true;
 	}
 	
 	protected long getCurrentPosition(String file) {

@@ -626,6 +626,18 @@ Media.prototype.stopAll = function() {
     Device.stopAllAudio();
 }
 
+Media.prototype.increaseMusicVolume = function() {
+    Device.increaseMusicVolume();
+}
+
+Media.prototype.decreaseMusicVolume = function() {
+    Device.decreaseMusicVolume();
+}
+
+Media.prototype.setMusicVolume = function(vol) {
+    return Device.setMusicVolume(vol);
+}
+
 Media.prototype.playDTMF = function(tone) {
     Device.playDTMF(tone);
 }
@@ -737,7 +749,7 @@ var lastShake = -1;
 // the magnitude of the difference vector required to be considered a "rapid acceleration change"
 var changeMagnitude = 6.75;
 // the time window for two rapid acceleration changes to be considered a shake (milliseconds)
-var shakeSpan = 500;
+var shakeSpan = 250;
 // the minimum time between shakes (milliseconds)
 var shakeDelay = 1000;
 
@@ -886,3 +898,27 @@ Accelerometer.prototype.clearAllWatches = function() {
 	// finally, stop the accelerometer
 	Accel.stop();
 }
+
+/**
+ * Used to keep the phone awake while the app is running
+ */
+function Power() {
+}
+
+Power.FULL_WAKE_LOCK = 26;
+Power.PARTIAL_WAKE_LOCK = 1;
+Power.SCREEN_BRIGHT_WAKE_LOCK = 10;
+Power.SCREEN_DIM_WAKE_LOCK = 6;
+
+Power.prototype.keepAwake = function() {
+    Console.println("Setting a wake lock");
+    Device.setWakeLock(Power.SCREEN_DIM_WAKE_LOCK);
+	Console.println("WakeLock set");
+}
+
+Power.prototype.releaseLock = function() {
+    Console.println("Releasing wake lock");
+    Device.releaseWakeLock();
+}
+
+if (typeof navigator.power == "undefined") navigator.power = new Power();

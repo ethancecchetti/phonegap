@@ -30,6 +30,7 @@ import android.content.res.AssetManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.os.PowerManager;
 import android.telephony.TelephonyManager;
 import android.telephony.gsm.SmsManager;
 import android.webkit.WebView;
@@ -53,6 +54,8 @@ public class PhoneGap {
 	DirectoryManager fileManager;
 	AudioHandler audio;
 	ToneHandler tones;
+	PowerManager power;
+	PowerManager.WakeLock lock;
     
 	public PhoneGap(Context ctx, WebView appView, AssetManager assets) {
 		this.mCtx = ctx;
@@ -63,6 +66,8 @@ public class PhoneGap {
 		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx, assets);
 		tones = new ToneHandler();
 		uuid = getUuid();
+		power = (PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
+		lock = null;
 	}
 	
 	public void beep(long pattern)
@@ -271,6 +276,18 @@ public class PhoneGap {
     public void stopAllAudio() {
 	audio.stopAllPlaying();
     }
+
+    public void increaseMusicVolume() {
+    	audio.increaseVolume();
+    }
+
+    public void decreaseMusicVolume() {
+    	audio.decreaseVolume();
+    }
+
+    public boolean setMusicVolume(int vol) {
+    	return audio.setVolume(vol);
+    }
     
     public long getCurrentPositionAudio(String file)
     {
@@ -338,9 +355,31 @@ public class PhoneGap {
 //	SmsListener listener = new SmsListener(mCtx, mAppView);
     }
 
+    public void setWakeLock(int lockFlag) {
+    	if (lock != null) {
+    	     lock.release();
+    	}
+    	
+    	Log.d("PhoneGap", "Setting new WakeLock. Phone will no longer sleep");
+
+    	lock = power.newWakeLock(lockFlag, "PhoneGap");
+    	System.out.println("WakeLock created");
+    	lock.acquire();
+    	System.out.println("Lock acquire called");
+    }
+
+    public void releaseWakeLock() {
+    	if (lock != null) {
+    	    Log.d("PhoneGap", "Releasing WakeLock. Phone will now sleep again.");
+    	    lock.release();
+    	    lock = null;
+    	}
+    }
+
     public void stop() {
     	stopAllAudio();
     	stopDTMF();
+    	releaseWakeLock();
     }
     
 }
