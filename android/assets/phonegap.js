@@ -143,7 +143,7 @@
      * @param {AccelerationOptions} options The options for getting the accelerometer data
      * such as timeout.
      */
-    
+/*    
     Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options) {
     	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	// TODO: add the interval id to a list so we can clear all watches
@@ -152,7 +152,7 @@
     		navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     	}, frequency);
     }
-
+*/
     /**
      * Asynchronously aquires the orientation repeatedly at a given interval.
      * @param {Function} successCallback The function to call each time the orientation
@@ -162,7 +162,7 @@
      * @param {OrientationOptions} options The options for getting the accelerometer data
      * such as timeout.
      */
-    
+/*    
     Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options) {
     	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	// TODO: add the interval id to a list so we can clear all watches
@@ -171,7 +171,7 @@
             navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     	}, frequency);
     }
-    
+*/    
     /**
      * Clears the specified accelerometer watch.
      * @param {String} watchId The ID of the watch returned from #watchAcceleration.
@@ -620,6 +620,9 @@ Media.prototype.stop = function(file) {
 }
 
 Media.prototype.stopAll = function() {
+    Console.println("Stopping all audio (phonegap.js)");
+    Console.println("typeof Device = " + (typeof Device));
+    Console.println("typeof Device.stopAllAudio = " + (typeof Device.stopAllAudio));
     Device.stopAllAudio();
 }
 
@@ -726,10 +729,17 @@ _orient.azimuth = null;
 _orient.pitch = null;
 _orient.roll = null;
 
-var lastRapidChange = 0;
-var lastShake = 0;
+// Variables containing the system time of the last rapid acceleration change
+// and the last recorded shake.
+var lastRapidChange = -1;
+var lastShake = -1;
 
-var changeMagnitude = 7.5;
+// the magnitude of the difference vector required to be considered a "rapid acceleration change"
+var changeMagnitude = 6.75;
+// the time window for two rapid acceleration changes to be considered a shake (milliseconds)
+var shakeSpan = 500;
+// the minimum time between shakes (milliseconds)
+var shakeDelay = 1000;
 
 function isRapidChange(accel, x, y, z) {
     var diff = {};
@@ -744,12 +754,17 @@ function gotAcceleration(x,y,z) {
     if ( isRapidChange(_accel, x, y, z) ) {
     	var curTime = new Date().getTime();
 //    	Console.println("Rapid accel change at " + curTime);
-	if (curTime - lastRapidChange < 500 && curTime - lastShake > 2000) {
-//    	    	Console.println("Phone got shaken at " + curTime);
-		navigator.accelerometer.gotShaken();
-		lastShake = curTime;
-	}
-	lastRapidChange = curTime;
+    	if (curTime - lastRapidChange < shakeSpan && curTime - lastShake > shakeDelay) {
+//    	    Console.println("Phone got shaken at " + curTime);
+    	    lastShake = curTime;
+    		try {
+				navigator.accelerometer.gotShaken();
+			} catch (e) {
+			    Console.logd("PhoneGap", e.toString());
+		    }
+    	}
+//		Console.println("Changing lastRapidChange to " + curTime);
+    	lastRapidChange = curTime;
     }
 
     _accel.x = x;
@@ -780,7 +795,7 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
     var that = this;
     return function() {
     	var index = that.shakeListeners.indexOf(callBacks);
-    	Console.println("Removing the shake listener at index " + index);
+//    	Console.println("Removing the shake listener at index " + index);
     	if (index != -1)
     	    that.shakeListeners.splice(index, 1);
 
@@ -792,10 +807,8 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
 }
 
 Accelerometer.prototype.gotShaken = function() {
-    if (this.shakeListeners) {
-    	for (var i = 0; i < this.shakeListeners.length; i++) {
-    		this.shakeListeners[i].success();
-    	}
+    for (var i = 0; i < this.shakeListeners.length; i++) {
+    	this.shakeListeners[i].success();
     }
 }
 
@@ -806,41 +819,47 @@ Accelerometer.prototype.gotShaken = function() {
 //    Accel.stop();
 //}
 
-Accelerometer.prototype.stopAllShakeWatches = function() {
-    this.shakeListeners = [];
-    if (navigator.accelerometer.allListenersEmpty())
-    	Accel.stop();
-}
+//Accelerometer.prototype.stopAllShakeWatches = function() {
+//    this.shakeListeners = [];
+//    if (navigator.accelerometer.allListenersEmpty())
+//    	Accel.stop();
+//}
 
-Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
+//Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
 Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options)
 {
     Accel.start();
-    var id = Accelerometer.base_method(successCallback, errorCallback, options);
+	
+	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
+    var frequency = (options != undefined)? options.frequency : 1000;
+    var id = setInterval(function() {
+    	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
+    }, frequency);
     this.accelListeners.push(id);
-    return id;
-}
-
-Accelerometer.prototype.clearAccelerationWatch = function(watchId){
-    navigator.accelerometer.clearTypeWatch(this.accelListeners, watchId);
+	
+	var that = this;
+    return function () {Accelerometer.clearTypeWatch(that.accelListeners, id);};
 }
 
 Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
 Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
 {
     Accel.start();
-    var id = Accelerometer.base_orient_method(successCallback, errorCallback, options);
+	
+	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+    var frequency = (options != undefined)? options.frequency : 1000;
+    var id = setInterval(function() {
+       navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+    }, frequency);
     this.orientListeners.push(id);
-    return id;
+    
+	var that = this;
+	return function () {Accelerometer.clearTypeWatch(that.orientListeners, id);};
 }
 
-Accelerometer.prototype.clearOrientationWatch = function(watchId) {
-    navigator.accelerometer.clearTypeWatch(this.orientListeners, watchId);
-}
-
-Accelerometer.prototype.clearTypeWatch = function(list, watchId) {
+Accelerometer.clearTypeWatch = function(list, watchId) {
     clearInterval(watchId);
-    var index = list.indexOf(watchId);
+	var index = list.indexOf(watchId);
     if (index != -1)
     	list.splice(index, 1);
 
@@ -850,3 +869,20 @@ Accelerometer.prototype.clearTypeWatch = function(list, watchId) {
     }
 }
 
+Accelerometer.prototype.clearAllWatches = function() {
+    // clear the shake listeners
+	this.shakeListeners = [];
+	
+	// now clear acceleration listeners
+	for (var i = 0; i < this.accelListeners.length; i++) {
+		clearInterval(this.accelListeners[i]);
+	}
+	
+	// now clear orientation watches
+	for (var j = 0; j < this.orientListeners.length; j++) {
+		clearInterval(this.orientListeners[j]);
+	}
+	
+	// finally, stop the accelerometer
+	Accel.stop();
+}

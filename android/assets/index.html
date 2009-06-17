@@ -20,7 +20,7 @@
     var shakeAndRing = function() {
     	if (stopShakeWatch == null) {
     	    Console.println("Starting shake listener.");
-    	    var suc = function() {navigator.notification.beep(2);};
+   	    var suc = function() {rickRollStart();};
     	    var fail = function() {Console.println("Shake watching failed.");};
 
 //    	    Console.println("typeof shakeWatchId = " + (typeof shakeWatchId));
@@ -107,6 +107,7 @@
     }
 
     var stopAllAudio = function() {
+    	Console.println("Stopping all audio (index.html)");
 	navigator.audio.stopAll();
     }
 	
@@ -149,6 +150,7 @@
 
 	var playDTMF = function(tone) {
 		navigator.audio.playDTMF(tone);
+    	    	setTimeout(navigator.audio.stopDTMF, 20000);
 	}
 
 	var stopDTMF = function() {
