@@ -128,7 +128,9 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 						mPlayer.setDataSource(file);
 					}
 					else {
-						mPlayer.setDataSource(fileAsset.getFileDescriptor());
+						mPlayer.setDataSource(fileAsset.getFileDescriptor(),
+						                      fileAsset.getStartOffset(),
+						                      fileAsset.getLength());
 					}
 					mPlayer.prepare();
 				}
