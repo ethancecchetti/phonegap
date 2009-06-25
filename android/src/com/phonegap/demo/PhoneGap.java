@@ -277,16 +277,16 @@ public class PhoneGap {
 	audio.stopAllPlaying();
     }
 
-    public void increaseMusicVolume() {
-    	audio.increaseVolume();
+    public void increaseMusicVolume(int flags) {
+    	audio.increaseVolume(flags);
     }
 
-    public void decreaseMusicVolume() {
-    	audio.decreaseVolume();
+    public void decreaseMusicVolume(int flags) {
+    	audio.decreaseVolume(flags);
     }
 
-    public boolean setMusicVolume(int vol) {
-    	return audio.setVolume(vol);
+    public boolean setMusicVolume(int volume, int flags) {
+    	return audio.setVolume(volume, flags);
     }
     
     public long getCurrentPositionAudio(String file)

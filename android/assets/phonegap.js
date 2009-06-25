@@ -188,51 +188,57 @@
      * This class provides access to the device media, interfaces to both sound and video
      * @constructor
      */
-    function Media() {
+    function Audio() {
  //   	this.src = src;
     }
     
-    Media.prototype.play = function(file) {
-	Device.startPlayingAudio(file);
+    Audio.prototype.play = function(file) {
     }
     
-    Media.prototype.pause = function(file) {
-	Device.pauseAudio(file);
+    Audio.prototype.pause = function(file) {
     }
 
-    Media.prototype.resume = function(file) {
-	Device.resumeAudio(file);
+    Audio.prototype.resume = function(file) {
     }
     
-    Media.prototype.stop = function(file) {
-	Device.stopPlayingAudio(file);
+    Audio.prototype.stop = function(file) {
     }
 
-    Media.prototype.playDTMF = function(tone) {
-	Device.playDTMF(tone);
+    Audio.prototype.stopAll = function() {
     }
 
-    Media.prototype.stopDTMF = function() {
-	Device.stopDTMF();
+    Audio.prototype.increaseMusicVolume = function() {
+    }
+
+    Audio.prototype.decreaseMusicVolume = function() {
+    }
+
+    Audio.prototype.setMusicVolume = function() {
+    }
+
+    Audio.prototype.playDTMF = function(tone) {
+    }
+
+    Audio.prototype.stopDTMF = function() {
     }
 
     
     /**
-     * This class contains information about any Media errors.
+     * This class contains information about any Audio errors.
      * @constructor
      */
-    function MediaError() {
+    function AudioError() {
     	this.code = null,
     	this.message = "";
     }
     
-    MediaError.MEDIA_ERR_ABORTED 		= 1;
-    MediaError.MEDIA_ERR_NETWORK 		= 2;
-    MediaError.MEDIA_ERR_DECODE 		= 3;
-    MediaError.MEDIA_ERR_NONE_SUPPORTED 	= 4;
+    AudioError.MEDIA_ERR_ABORTED 		= 1;
+    AudioError.MEDIA_ERR_NETWORK 		= 2;
+    AudioError.MEDIA_ERR_DECODE 		= 3;
+    AudioError.MEDIA_ERR_NONE_SUPPORTED 	= 4;
     
     
-    if (typeof navigator.audio == "undefined") navigator.audio = new Media();
+    if (typeof navigator.audio == "undefined") navigator.audio = new Audio();
     
     
     /**
@@ -599,52 +605,60 @@ Notification.prototype.beep = function(count, volume)
 
 
 /**
- * Media play, pause, stop, and result methods for the android audio
+ * Audio play, pause, stop, and result methods for the android audio
  *
  * Also methods to play and stop DTMF tones
  */
-Media.prototype.play = function(file) {
+Audio.prototype.play = function(file) {
     Device.startPlayingAudio(file);
 }
     
-Media.prototype.pause = function(file) {
+Audio.prototype.pause = function(file) {
     Device.pauseAudio(file);
 }
 
-Media.prototype.resume = function(file) {
+Audio.prototype.resume = function(file) {
     Device.resumeAudio(file);
 }
     
-Media.prototype.stop = function(file) {
+Audio.prototype.stop = function(file) {
     Device.stopPlayingAudio(file);
 }
 
-Media.prototype.stopAll = function() {
-    Console.println("Stopping all audio (phonegap.js)");
-    Console.println("typeof Device = " + (typeof Device));
-    Console.println("typeof Device.stopAllAudio = " + (typeof Device.stopAllAudio));
+Audio.prototype.stopAll = function() {
     Device.stopAllAudio();
 }
 
-Media.prototype.increaseMusicVolume = function() {
-    Device.increaseMusicVolume();
+Audio.prototype.increaseMusicVolume = function(flags) {
+    var theFlags = (typeof flags == "undefined")? Audio.FLAG_NONE : flags;
+    Device.increaseMusicVolume(theFlags);
 }
 
-Media.prototype.decreaseMusicVolume = function() {
-    Device.decreaseMusicVolume();
+Audio.prototype.decreaseMusicVolume = function(flags) {
+    var theFlags = (typeof flags == "undefined")? Audio.FLAG_NONE : flags;
+    Device.decreaseMusicVolume(theFlags);
 }
 
-Media.prototype.setMusicVolume = function(vol) {
-    return Device.setMusicVolume(vol);
+Audio.prototype.setMusicVolume = function(volume, flags) {
+    var theFlags = (typeof flags == "undefined")? Audio.FLAG_NONE : flags;
+    Device.setMusicVolume(volume, theFlags);
 }
 
-Media.prototype.playDTMF = function(tone) {
+Audio.prototype.playDTMF = function(tone) {
     Device.playDTMF(tone);
 }
 
-Media.prototype.stopDTMF = function() {
+Audio.prototype.stopDTMF = function() {
     Device.stopDTMF();
 }
+
+// Flags for volume controls
+Audio.FLAG_NONE = 0;
+Audio.FLAG_SHOW_UI = 1;
+Audio.FLAG_ALLOW_RINGER_MODES = 2;
+Audio.FLAG_PLAY_SOUND = 4;
+Audio.FLAG_REMOVE_SOUND_AND_VIBRATE = 8;
+Audio.FLAG_VIBRATE = 16;
 
 
 /**
@@ -769,13 +783,13 @@ function gotAcceleration(x,y,z) {
     	if (curTime - lastRapidChange < shakeSpan && curTime - lastShake > shakeDelay) {
 //    	    Console.println("Phone got shaken at " + curTime);
     	    lastShake = curTime;
-    		try {
-				navigator.accelerometer.gotShaken();
-			} catch (e) {
-			    Console.logd("PhoneGap", e.toString());
-		    }
+    	    try {
+    	    	navigator.accelerometer.gotShaken();
+    	    } catch (e) {
+    	    	Console.logd("PhoneGap", e.toString());
+    	    }
     	}
-//		Console.println("Changing lastRapidChange to " + curTime);
+//    	Console.println("Changing lastRapidChange to " + curTime);
     	lastRapidChange = curTime;
     }
 
@@ -842,31 +856,33 @@ Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallb
 {
     Accel.start();
 	
-	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
-    var frequency = (options != undefined)? options.frequency : 1000;
+    navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
+    var frequency = (options != undefined)? options.frequency : 100;
+
     var id = setInterval(function() {
     	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     }, frequency);
     this.accelListeners.push(id);
 	
-	var that = this;
+    var that = this;
     return function () {Accelerometer.clearTypeWatch(that.accelListeners, id);};
 }
 
-Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
+//Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
 Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
 {
     Accel.start();
 	
-	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
-    var frequency = (options != undefined)? options.frequency : 1000;
+    navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+    var frequency = (options != undefined)? options.frequency : 100;
+
     var id = setInterval(function() {
        navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     }, frequency);
     this.orientListeners.push(id);
     
-	var that = this;
-	return function () {Accelerometer.clearTypeWatch(that.orientListeners, id);};
+    var that = this;
+    return function () {Accelerometer.clearTypeWatch(that.orientListeners, id);};
 }
 
 Accelerometer.clearTypeWatch = function(list, watchId) {
@@ -883,20 +899,20 @@ Accelerometer.clearTypeWatch = function(list, watchId) {
 
 Accelerometer.prototype.clearAllWatches = function() {
     // clear the shake listeners
-	this.shakeListeners = [];
-	
-	// now clear acceleration listeners
-	for (var i = 0; i < this.accelListeners.length; i++) {
-		clearInterval(this.accelListeners[i]);
-	}
-	
-	// now clear orientation watches
-	for (var j = 0; j < this.orientListeners.length; j++) {
-		clearInterval(this.orientListeners[j]);
-	}
-	
-	// finally, stop the accelerometer
-	Accel.stop();
+    this.shakeListeners = [];
+    
+    // now clear acceleration listeners
+    for (var i = 0; i < this.accelListeners.length; i++) {
+    	clearInterval(this.accelListeners[i]);
+    }
+    
+    // now clear orientation watches
+    for (var j = 0; j < this.orientListeners.length; j++) {
+    	clearInterval(this.orientListeners[j]);
+    }
+    
+    // finally, stop the accelerometer
+    Accel.stop();
 }
 
 /**
@@ -910,15 +926,17 @@ Power.PARTIAL_WAKE_LOCK = 1;
 Power.SCREEN_BRIGHT_WAKE_LOCK = 10;
 Power.SCREEN_DIM_WAKE_LOCK = 6;
 
-Power.prototype.keepAwake = function() {
-    Console.println("Setting a wake lock");
-    Device.setWakeLock(Power.SCREEN_DIM_WAKE_LOCK);
-	Console.println("WakeLock set");
+Power.prototype.keepAwake = function(flags) {
+//    Console.println("Setting a wake lock");
+    var lockType = (typeof flags == "undefined")? Power.SCREEN_DIM_WAKE_LOCK : flags;
+    Device.setWakeLock(lockType);
+//    Console.println("WakeLock set");
 }
 
 Power.prototype.releaseLock = function() {
-    Console.println("Releasing wake lock");
+//    Console.println("Releasing wake lock");
     Device.releaseWakeLock();
 }
 
 if (typeof navigator.power == "undefined") navigator.power = new Power();
+

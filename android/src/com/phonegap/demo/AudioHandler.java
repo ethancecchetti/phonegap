@@ -28,9 +28,9 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private HashMap<String, MPlayerStatus> mPlayers_file;
 	private HashMap<MediaPlayer, MPlayerStatus> mPlayers_player;
 
-	private boolean isPaused = false;
+//	private boolean isPaused = false;
 	private AssetManager assets;
-	private String curPlaying = null;
+//	private String curPlaying = null;
 	private AudioManager volumeControl;
 	
 	private static final int MUSIC_STREAM = AudioManager.STREAM_MUSIC;
@@ -139,7 +139,8 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		}
 		// Otherwise check to see if it's paused, if it is, resume
 		else if ( mPlayers_file.get(file).isPaused ) {
-			resumePlaying(file);
+			mPlayers_file.get(file).player.start();
+			mPlayers_file.get(file).isPaused = false;
 		}
 	}
 
@@ -193,31 +194,32 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
    	}
 
 	public void stopAllPlaying() {
-		for (MPlayerStatus status : mPlayers_file.values()) {
-			status.player.stop();
-			status.player.release();
+		for (MediaPlayer player : mPlayers_player.keySet()) {
+			player.stop();
+			player.release();
 		}
 		mPlayers_file.clear();
 		mPlayers_player.clear();
 	}
 
-	public void increaseVolume() {
+	public void increaseVolume(int flags) {
 		volumeControl.adjustStreamVolume(MUSIC_STREAM,
 		                                 AudioManager.ADJUST_RAISE,
-		                                 0);
+		                                 flags);
 	}
 
-	public void decreaseVolume() {
+	public void decreaseVolume(int flags) {
 		volumeControl.adjustStreamVolume(MUSIC_STREAM,
 		                                 AudioManager.ADJUST_LOWER,
-		                                 0);
+		                                 flags);
 	}
 
-	public boolean setVolume(int vol) {
-		if (vol < 0 || vol < volumeControl.getStreamMaxVolume(MUSIC_STREAM))
+	public boolean setVolume(int percent, int flags) {
+		if (percent < 0 || percent > 100)
 			return false;
 
-		volumeControl.setStreamVolume(MUSIC_STREAM, vol, 0);
+		int volIndex = percent * volumeControl.getStreamMaxVolume(MUSIC_STREAM) / 100;
+		volumeControl.setStreamVolume(MUSIC_STREAM, volIndex, flags);
 		return true;
 	}
 	
