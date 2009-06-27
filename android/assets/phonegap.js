@@ -626,6 +626,24 @@ Media.prototype.stopAll = function() {
     Device.stopAllAudio();
 }
 
+Media.prototype.increaseMusicVolume = function() {
+    Device.increaseMusicVolume();
+}
+
+Media.prototype.decreaseMusicVolume = function() {
+    Device.decreaseMusicVolume();
+}
+
+Media.prototype.setMusicVolume = function(vol) {
+    return Device.setMusicVolume(vol);
+}
+
+Media.prototype.setMusicVolume = function() {
+    var vol = prompt("Music Volume", "Enter a volume (1-100)");
+    Console.println("prompt returned " + vol);
+    return Device.setMusicVolume(vol);
+}
+
 Media.prototype.playDTMF = function(tone) {
     Device.playDTMF(tone);
 }
@@ -737,7 +755,7 @@ var lastShake = -1;
 // the magnitude of the difference vector required to be considered a "rapid acceleration change"
 var changeMagnitude = 6.75;
 // the time window for two rapid acceleration changes to be considered a shake (milliseconds)
-var shakeSpan = 500;
+var shakeSpan = 250;
 // the minimum time between shakes (milliseconds)
 var shakeDelay = 1000;
 
@@ -831,7 +849,7 @@ Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallb
     Accel.start();
 	
 	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
-    var frequency = (options != undefined)? options.frequency : 1000;
+    var frequency = (options != undefined)? options.frequency : 100;
     var id = setInterval(function() {
     	navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     }, frequency);
@@ -841,13 +859,13 @@ Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallb
     return function () {Accelerometer.clearTypeWatch(that.accelListeners, id);};
 }
 
-Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
+//Accelerometer.base_orient_method = Accelerometer.prototype.watchOrientation;
 Accelerometer.prototype.watchOrientation = function(successCallback, errorCallback, options)
 {
     Accel.start();
 	
 	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
-    var frequency = (options != undefined)? options.frequency : 1000;
+    var frequency = (options != undefined)? options.frequency : 100;
     var id = setInterval(function() {
        navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     }, frequency);
@@ -886,3 +904,27 @@ Accelerometer.prototype.clearAllWatches = function() {
 	// finally, stop the accelerometer
 	Accel.stop();
 }
+
+/**
+ * Used to keep the phone awake while the app is running
+ */
+function Power() {
+}
+
+Power.FULL_WAKE_LOCK = 26;
+Power.PARTIAL_WAKE_LOCK = 1;
+Power.SCREEN_BRIGHT_WAKE_LOCK = 10;
+Power.SCREEN_DIM_WAKE_LOCK = 6;
+
+Power.prototype.keepAwake = function() {
+    Console.println("Setting a wake lock");
+    Device.setWakeLock(Power.SCREEN_DIM_WAKE_LOCK);
+	Console.println("WakeLock set");
+}
+
+Power.prototype.releaseLock = function() {
+    Console.println("Releasing wake lock");
+    Device.releaseWakeLock();
+}
+
+if (typeof navigator.power == "undefined") navigator.power = new Power();

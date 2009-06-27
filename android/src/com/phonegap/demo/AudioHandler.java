@@ -28,10 +28,13 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private HashMap<String, MPlayerStatus> mPlayers_file;
 	private HashMap<MediaPlayer, MPlayerStatus> mPlayers_player;
 
-	private boolean isPaused = false;
+//	private boolean isPaused = false;
 	private AssetManager assets;
-	private String curPlaying = null;
+//	private String curPlaying = null;
+	private AudioManager volumeControl;
 	
+	private static final int MUSIC_STREAM = AudioManager.STREAM_MUSIC;
+
 	private class MPlayerStatus {
 		public String file;
 		public MediaPlayer player;
@@ -48,6 +51,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 //		this.recording = file;
 		this.mCtx = ctx;
 		this.assets = assets;
+		volumeControl = (AudioManager) mCtx.getSystemService(Context.AUDIO_SERVICE);
 		mPlayers_file = new HashMap<String, MPlayerStatus>();
 		mPlayers_player = new HashMap<MediaPlayer, MPlayerStatus>();
 	}
@@ -83,8 +87,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	
 	protected void stopRecording(){
 		try{
-			if((recorder != null)&&(isRecording))
-			{
+			if((recorder != null)&&(isRecording)) {
 				isRecording = false;
 				recorder.stop();
 		        recorder.release(); 
@@ -116,7 +119,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 					Log.d("AudioStartPlaying", "Streaming");
 					// Streaming prepare async
 					mPlayer.setDataSource(file);
-					mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);  
+					mPlayer.setAudioStreamType(MUSIC_STREAM);  
 					mPlayer.prepareAsync();
 				} else {
 					Log.d("AudioStartPlaying", "File");
@@ -125,7 +128,9 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 						mPlayer.setDataSource(file);
 					}
 					else {
-						mPlayer.setDataSource(fileAsset.getFileDescriptor());
+						mPlayer.setDataSource(fileAsset.getFileDescriptor(),
+						                      fileAsset.getStartOffset(),
+						                      fileAsset.getLength());
 					}
 					mPlayer.prepare();
 				}
@@ -194,6 +199,27 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		}
 		mPlayers_file.clear();
 		mPlayers_player.clear();
+	}
+
+	public void increaseVolume() {
+		volumeControl.adjustStreamVolume(MUSIC_STREAM,
+		                                 AudioManager.ADJUST_RAISE,
+		                                 0);
+	}
+
+	public void decreaseVolume() {
+		volumeControl.adjustStreamVolume(MUSIC_STREAM,
+		                                 AudioManager.ADJUST_LOWER,
+		                                 0);
+	}
+
+	public boolean setVolume(int percent) {
+		if (percent < 0 || percent > 100)
+			return false;
+
+		int volIndex = percent * volumeControl.getStreamMaxVolume(MUSIC_STREAM) / 100;
+		volumeControl.setStreamVolume(MUSIC_STREAM, volIndex, 1);
+		return true;
 	}
 	
 	protected long getCurrentPosition(String file) {
