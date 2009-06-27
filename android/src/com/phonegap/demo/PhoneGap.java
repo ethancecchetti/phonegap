@@ -360,12 +360,12 @@ public class PhoneGap {
     	     lock.release();
     	}
     	
-    	Log.d("PhoneGap", "Setting new WakeLock. Phone will no longer sleep");
+    	Log.d("PhoneGap", "Setting new WakeLock with flags " + lockFlag + ". Phone will no longer sleep");
 
     	lock = power.newWakeLock(lockFlag, "PhoneGap");
-    	System.out.println("WakeLock created");
+//    	System.out.println("WakeLock created");
     	lock.acquire();
-    	System.out.println("Lock acquire called");
+//    	System.out.println("Lock acquire called");
     }
 
     public void releaseWakeLock() {

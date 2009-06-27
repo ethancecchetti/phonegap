@@ -609,23 +609,23 @@ Notification.prototype.beep = function(count, volume)
  *
  * Also methods to play and stop DTMF tones
  */
-Audio.prototype.play = function(file) {
+Audio.prototype.playMusic = function(file) {
     Device.startPlayingAudio(file);
 }
     
-Audio.prototype.pause = function(file) {
+Audio.prototype.pauseMusic = function(file) {
     Device.pauseAudio(file);
 }
 
-Audio.prototype.resume = function(file) {
+Audio.prototype.resumeMusic = function(file) {
     Device.resumeAudio(file);
 }
     
-Audio.prototype.stop = function(file) {
+Audio.prototype.stopMusic = function(file) {
     Device.stopPlayingAudio(file);
 }
 
-Audio.prototype.stopAll = function() {
+Audio.prototype.stopAllMusic = function() {
     Device.stopAllAudio();
 }
 
@@ -761,7 +761,7 @@ var lastRapidChange = -1;
 var lastShake = -1;
 
 // the magnitude of the difference vector required to be considered a "rapid acceleration change"
-var changeMagnitude = 6.75;
+var changeMagnitude = 7.25;
 // the time window for two rapid acceleration changes to be considered a shake (milliseconds)
 var shakeSpan = 250;
 // the minimum time between shakes (milliseconds)
@@ -928,14 +928,14 @@ Power.PARTIAL_WAKE_LOCK = 1;
 Power.SCREEN_BRIGHT_WAKE_LOCK = 10;
 Power.SCREEN_DIM_WAKE_LOCK = 6;
 
-Power.prototype.keepAwake = function(flags) {
+Power.prototype.setWakeLock = function(flags) {
 //    Console.println("Setting a wake lock");
     var lockType = (typeof flags == "undefined")? Power.SCREEN_DIM_WAKE_LOCK : flags;
     Device.setWakeLock(lockType);
 //    Console.println("WakeLock set");
 }
 
-Power.prototype.releaseLock = function() {
+Power.prototype.releaseWakeLock = function() {
 //    Console.println("Releasing wake lock");
     Device.releaseWakeLock();
 }

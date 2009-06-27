@@ -71,18 +71,18 @@
 
     var isDiskPlaying = false;
     var isOtPlaying = false;
-    var diskFile = "file:///android_asset/audio/Sweet Child.mp3";
+    var diskFile = "/sdcard/audio/09 Brand New Day.m4a";
     var webFile = "http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20Midnight%20Sun.mp3";
 
     var diskStart = function() {
 	if (isDiskPlaying) {
 //	    Console.println("Pausing disk file.");
-	    navigator.audio.pause(diskFile);
+	    navigator.audio.pauseMusic(diskFile);
 	    isDiskPlaying = false;
 	}
 	else {
 //	    Console.println("Starting disk file.");
-	    navigator.audio.play(diskFile);
+	    navigator.audio.playMusic(diskFile);
 	    isDiskPlaying = true;
 //	    isOtPlaying = false;
 	}
@@ -90,11 +90,11 @@
 
     var webStart = function() {
     	if (isOtPlaying) {
-    	    navigator.audio.pause(webFile);
+    	    navigator.audio.pauseMusic(webFile);
     	    isOtPlaying = false;
     	}
     	else {
-    	    navigator.audio.play(webFile);
+    	    navigator.audio.playMusic(webFile);
 //    	    isDiskPlaying = false;
     	    isOtPlaying = true;
     	}
@@ -102,13 +102,13 @@
 
     var diskStop = function() {
 //	    Console.println("Trying to stop audio.");
-	    navigator.audio.stop(diskFile);
+	    navigator.audio.stopMusic(diskFile);
 	    isDiskPlaying = false;
     }
 
     var stopAllAudio = function() {
 //    	Console.println("Stopping all audio (index.html)");
-	navigator.audio.stopAll();
+	navigator.audio.stopAllMusic();
     }
 	
     var increaseAudioVol = function() {
@@ -186,11 +186,11 @@
     };
 
     function preventSleep() {
-    	navigator.power.keepAwake();
+    	navigator.power.setWakeLock();
     };
 
     function allowSleep() {
-    	navigator.power.releaseLock();
+    	navigator.power.releaseWakeLock();
     };
 		
 		function init(){
