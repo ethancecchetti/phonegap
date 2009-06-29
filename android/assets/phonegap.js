@@ -855,7 +855,7 @@ Accelerometer.prototype.gotShaken = function() {
 Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options)
 {
     Accel.start();
-	
+
     navigator.accelerometer.getCurrentAcceleration(successCallback, errorCallback, options);
     var frequency = (options != undefined)? options.frequency : 100;
 
@@ -873,6 +873,8 @@ Accelerometer.prototype.watchOrientation = function(successCallback, errorCallba
 {
     Accel.start();
 	
+	navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
+    var frequency = (options != undefined)? options.frequency : 100;
     navigator.accelerometer.getCurrentOrientation(successCallback, errorCallback, options);
     var frequency = (options != undefined)? options.frequency : 100;
 
@@ -939,4 +941,3 @@ Power.prototype.releaseWakeLock = function() {
 }
 
 if (typeof navigator.power == "undefined") navigator.power = new Power();
-
