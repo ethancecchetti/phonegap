@@ -288,7 +288,8 @@ public class PhoneGap {
     public boolean setMusicVolume(int volume, int flags) {
     	return audio.setVolume(volume, flags);
     }
-    
+
+/*    
     public long getCurrentPositionAudio(String file)
     {
     	System.out.println(audio.getCurrentPosition(file));
@@ -308,6 +309,7 @@ public class PhoneGap {
     public int getAudioOutputDevice(){
     	return audio.getAudioOutputDevice();
     }
+*/
 
     public void playDTMF(int tone) {
     	tones.playDTMF(tone);
