@@ -95,6 +95,7 @@
      * @param {AccelerationOptions} options The options for getting the accelerometer data
      * such as timeout.
      */
+/*
     Accelerometer.prototype.getCurrentAcceleration = function(successCallback, errorCallback, options) {
     	// If the acceleration is available then call success
     	// If the acceleration is not available then call error
@@ -109,6 +110,7 @@
 		errorCallback();
 	}
     }
+*/
 
     /**
      * Asynchronously aquires the current orientation.
@@ -119,6 +121,7 @@
      * @param {OrientationOptions} options The options for getting the accelerometer data
      * such as timeout.
      */
+/*
     Accelerometer.prototype.getCurrentOrientation = function(successCallback, errorCallback, options) {
 	// If the orientation is available then call success
     	// If the orientation is not available then call error
@@ -133,6 +136,7 @@
 		errorCallback();
 	}
     }
+*/
     
     /**
      * Asynchronously aquires the acceleration repeatedly at a given interval.
@@ -610,6 +614,7 @@ Notification.prototype.beep = function(count, volume)
  * Also methods to play and stop DTMF tones
  */
 Audio.prototype.playMusic = function(file) {
+    Console.println("Playing music file " + file);
     Device.startPlayingAudio(file);
 }
     
@@ -850,6 +855,18 @@ Accelerometer.prototype.gotShaken = function() {
 //    if (navigator.accelerometer.allListenersEmpty())
 //    	Accel.stop();
 //}
+
+Accelerometer.prototype.getCurrentAcceleration = function(successCallback, errorCallback, options) {
+    var accel = new Acceleration( Accel.getX(), Accel.getY(), Accel.getZ() );
+    Accelerometer.lastAcceleration = accel;
+    successCallback(accel);
+}
+
+Accelerometer.prototype.getCurrentOrientation = function(successCallback, errorCallback, options) {
+    var orient = new Orientation( Accel.getAzimuth(), Accel.getPitch(), Accel.getRoll() );
+    Accelerometer.lastOrienetation = orient;
+    successCallback(orient);
+}
 
 //Accelerometer.base_method = Accelerometer.prototype.watchAcceleration
 Accelerometer.prototype.watchAcceleration = function(successCallback, errorCallback, options)

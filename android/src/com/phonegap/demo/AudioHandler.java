@@ -100,6 +100,7 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	protected void startPlaying(String file) {
 		MPlayerStatus status = mPlayers_file.get(file);
 		if ( status == null ) {
+//			System.out.println("Loading an playing file " + file);
 			try {
 				AssetFileDescriptor fileAsset = getAssetFileDesc(file);
 				
@@ -108,6 +109,21 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 				mPlayers_file.put(file, status);
 				mPlayers_player.put(mPlayer, status);
 				Log.d("Audio startPlaying", "audio: " + file);
+				mPlayer.setOnPreparedListener(this);
+
+				if (fileAsset == null) {
+					mPlayer.setDataSource(file);
+				}
+				else {
+					mPlayer.setDataSource(fileAsset.getFileDescriptor(),
+					                      fileAsset.getStartOffset(),
+					                      fileAsset.getLength());
+				}
+
+				mPlayer.setAudioStreamType(MUSIC_STREAM);
+				mPlayer.prepareAsync();
+
+/*
 				if (isStreaming(file))
 				{
 					Log.d("AudioStartPlaying", "Streaming");
@@ -128,28 +144,30 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 					}
 					mPlayer.prepare();
 				}
-				mPlayer.setOnPreparedListener(this);
+*/
 				status.isPlaying = true;
 			} catch (Exception e) { e.printStackTrace(); }
 			
 		}
-		else if ( !status.isPlaying ) {
-			try {
-				if ( isStreaming(file) )
-					status.player.prepareAsync();
-				else
-					status.player.prepare();
-
-				status.player.start();
-				status.isPlaying = true;
-				status.isPaused = false;
-			} catch (Exception e) { e.printStackTrace(); }
+		else if ( !status.isPlaying || status.isPaused ) {
+//			System.out.println("Trying to play file " + file + " (already loaded)");
+			status.player.start();
+			status.isPlaying = true;
+			status.isPaused = false;
+//			try {
+//				status.player.prepareAsync();
+//				status.isPlaying = true;
+//				status.isPaused = false;
+//			} catch (Exception e) { e.printStackTrace(); }
 		}
 		// Otherwise check to see if it's paused, if it is, resume
-		else if ( status.isPaused ) {
-			status.player.start();
-			status.isPaused = false;
-		}
+//		else if ( status.isPaused ) {
+//			System.out.println("Unpausing " + file);
+//			status.player.start();
+//			status.isPaused = false;
+//		}
+//		else
+//			System.out.println("fell through");
 	}
 
 	private AssetFileDescriptor getAssetFileDesc(String file) {
@@ -187,7 +205,8 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 
 		MPlayerStatus status = mPlayers_file.get(file);
 		if ( status != null ) {
-			status.player.stop();
+			status.player.pause();
+			status.player.seekTo(0);
 			status.isPlaying = false;
 			status.isPaused = false;
 		}
@@ -195,23 +214,36 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	
 	public void onCompletion(MediaPlayer mPlayer) {
 //		System.out.println("onCompletion called");
+		MPlayerStatus status = mPlayers_player.get(mPlayer);
+		status.isPlaying = false;
+		status.isPaused = false;
 
 		mPlayer.stop();
-		mPlayers_player.get(mPlayer).isPlaying = false;
-		mPlayers_player.get(mPlayer).isPaused = false;
+		mPlayer.prepareAsync();
    	}
 
 	public void stopAllPlaying() {
 //		System.out.println("stopAllPlaying called");
 
 		for ( MPlayerStatus status : mPlayers_file.values() ) {
-			status.player.stop();
+			status.player.pause();
+			status.player.seekTo(0);
 			status.isPlaying = false;
 			status.isPaused = false;
 		}
 	}
 
-	public void clearCache() {
+	public void clearCache(String file) {
+		if ( mPlayers_file.containsKey(file) ) {
+			MediaPlayer player = mPlayers_file.get(file).player;
+			player.stop();
+			player.release();
+			mPlayers_file.remove(file);
+			mPlayers_player.remove(player);
+		}
+	}
+
+	public void clearAllCaches() {
 //		System.out.println("clearCache called");
 
 		for (MediaPlayer player : mPlayers_player.keySet()) {
@@ -296,6 +328,15 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 				}
 			});
 			mPlayer.start();
+			if ( !mPlayers_player.get(mPlayer).isPlaying ) {
+				mPlayer.pause();
+				mPlayer.seekTo(0);
+			}
+			else if ( mPlayers_player.get(mPlayer).isPaused )
+				mPlayer.pause();
+
+//			mPlayers_player.get(mPlayer).isPlaying = true;
+//			mPlayers_player.get(mPlayer).isPaused = false;
 		}
 	}
 

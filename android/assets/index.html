@@ -71,17 +71,17 @@
 
     var isDiskPlaying = false;
     var isOtPlaying = false;
-    var diskFile = "/sdcard/audio/06-Love_Like_Winter.mp3";
+    var diskFile = "file:///android_asset/tones/C-tone.wav";
     var webFile = "http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20Midnight%20Sun.mp3";
 
     var diskStart = function() {
 	if (isDiskPlaying) {
-//	    Console.println("Pausing disk file.");
+	    Console.println("Pausing disk file.");
 	    navigator.audio.pauseMusic(diskFile);
 	    isDiskPlaying = false;
 	}
 	else {
-//	    Console.println("Starting disk file.");
+	    Console.println("Starting disk file.");
 	    navigator.audio.playMusic(diskFile);
 	    isDiskPlaying = true;
 //	    isOtPlaying = false;

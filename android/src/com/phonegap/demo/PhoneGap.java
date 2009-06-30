@@ -379,7 +379,7 @@ public class PhoneGap {
     }
 
     public void stop() {
-    	audio.clearCache();
+    	audio.clearAllCaches();
 //    	stopAllAudio();
     	stopDTMF();
     	releaseWakeLock();
