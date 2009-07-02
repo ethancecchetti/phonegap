@@ -50,20 +50,22 @@ public class PhoneGap {
 	public static String uuid;
 	private Context mCtx;
 	private WebView mAppView;
-	SmsListener mSmsListener;
-	DirectoryManager fileManager;
-	AudioHandler audio;
-	ToneHandler tones;
-	PowerManager power;
-	PowerManager.WakeLock lock;
+	private SmsListener mSmsListener;
+	private DirectoryManager fileManager;
+	private AudioHandler audio;
+	private ToneHandler tones;
+	private PowerManager power;
+	private PowerManager.WakeLock lock;
+	private ArgTable arguments;
     
-	public PhoneGap(Context ctx, WebView appView, AssetManager assets) {
+	public PhoneGap(Context ctx, WebView appView, AssetManager assets, ArgTable args) {
 		this.mCtx = ctx;
 		this.mAppView = appView;
+		this.arguments = args;
 
 		mSmsListener = new SmsListener(ctx,mAppView);
 		fileManager = new DirectoryManager();
-		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx, assets);
+		audio = new AudioHandler("/sdcard/tmprecording.mp3", ctx, mAppView, assets, arguments);
 		tones = new ToneHandler();
 		uuid = getUuid();
 		power = (PowerManager) ctx.getSystemService(Context.POWER_SERVICE);

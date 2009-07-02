@@ -15,6 +15,7 @@ import android.media.MediaPlayer.OnBufferingUpdateListener;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.util.Log;
+import android.webkit.WebView;
 
 public class AudioHandler implements OnCompletionListener, OnPreparedListener, OnErrorListener {
 	private MediaRecorder recorder;
@@ -24,7 +25,9 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	private String recording;
 	private String saveFile;
 	private Context mCtx;
-	
+	private WebView mAppView;
+	private ArgTable arguments;
+
 	private HashMap<String, MPlayerStatus> mPlayers_file;
 	private HashMap<MediaPlayer, MPlayerStatus> mPlayers_player;
 
@@ -47,10 +50,12 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 		}
 	}
 	
-	public AudioHandler(String file, Context ctx, AssetManager assets) {
+	public AudioHandler(String file, Context ctx, WebView appView, AssetManager assets, ArgTable args) {
 //		this.recording = file;
 		this.mCtx = ctx;
+		this.mAppView = appView;
 		this.assets = assets;
+		this.arguments = args;
 		volumeControl = (AudioManager) mCtx.getSystemService(Context.AUDIO_SERVICE);
 		mPlayers_file = new HashMap<String, MPlayerStatus>();
 		mPlayers_player = new HashMap<MediaPlayer, MPlayerStatus>();
@@ -195,10 +200,18 @@ public class AudioHandler implements OnCompletionListener, OnPreparedListener, O
 	
 	public void onCompletion(MediaPlayer mPlayer) {
 //		System.out.println("onCompletion called");
+		MPlayerStatus status = mPlayers_player.get(mPlayer);
 
 		mPlayer.stop();
-		mPlayers_player.get(mPlayer).isPlaying = false;
-		mPlayers_player.get(mPlayer).isPaused = false;
+		status.isPlaying = false;
+		status.isPaused = false;
+
+		arguments.put("finishedMusicFile", status.file);
+		
+//		String escapedFile = status.file.replaceAll("'", "\\\\'");
+		mAppView.loadUrl("javascript:navigator.audio.musicFinished()");
+
+//		System.out.println("Called musicFinished on " + escapedFile);
    	}
 
 	public void stopAllPlaying() {

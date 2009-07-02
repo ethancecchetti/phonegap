@@ -40,7 +40,7 @@
       var suc = function(p){
 		alert(p.latitude + " " + p.longitude);
       };
-      var fail = function(){};
+      var fail = function() {Console.println("getLocation failed.");};
       navigator.geolocation.getCurrentPosition(suc,fail);
     }
 
@@ -71,21 +71,21 @@
 
     var isDiskPlaying = false;
     var isOtPlaying = false;
-    var diskFile = "/sdcard/audio/06-Love_Like_Winter.mp3";
+    var diskFile = "file:///android_asset/tones/C-tone.wav";
     var webFile = "http://www.cs.brown.edu/people/jon/music/A.F.I%20-%20Midnight%20Sun.mp3";
 
     var diskStart = function() {
-	if (isDiskPlaying) {
+    	if (isDiskPlaying) {
 //	    Console.println("Pausing disk file.");
-	    navigator.audio.pauseMusic(diskFile);
-	    isDiskPlaying = false;
-	}
-	else {
+    	    navigator.audio.pauseMusic(diskFile);
+    	    isDiskPlaying = false;
+    	}
+    	else {
 //	    Console.println("Starting disk file.");
-	    navigator.audio.playMusic(diskFile);
-	    isDiskPlaying = true;
-//	    isOtPlaying = false;
-	}
+    	    navigator.audio.playMusic(diskFile, function() {isDiskPlaying = false;});
+    	    isDiskPlaying = true;
+//    	    isOtPlaying = false;
+    	}
     }
 
     var webStart = function() {
@@ -207,6 +207,7 @@
     <h2><a href="file:///android_asset/Bubble3/world.html">Bubble</a></h2>
     <h2><a href="file:///android_asset/ShakeToDtmf/world.html">DMTF Shake</a></h2>
     <h2><a href="file:///android_asset/SilencingMusic/world.html">Sleep Timer</a></h2>
+    <h2><a href="file:///android_asset/cpu-test.html">CPU Test</a></h2>
     <div id="info">
       <h4>Platform: <span id="platform">&nbsp;</span></h4>
       <h4>Version: <span id="version">&nbsp;</span></h4>
