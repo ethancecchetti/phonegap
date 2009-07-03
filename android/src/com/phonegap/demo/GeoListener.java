@@ -50,7 +50,6 @@ public class GeoListener {
 	void fail()
 	{
 		// Do we need to know why?  How would we handle this?
-		arguments.put("gpsId", id);
 		mAppView.loadUrl("javascript:GeoLocation.fail()");
 	}
 	
