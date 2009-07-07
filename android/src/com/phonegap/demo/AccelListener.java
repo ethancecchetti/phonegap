@@ -8,11 +8,16 @@ import android.content.Context;
 import android.hardware.SensorListener;
 import android.webkit.WebView;
 
+import java.util.HashMap;
+
 public class AccelListener implements SensorListener{
 
 	WebView mAppView;
 	Context mCtx;
 	private SensorManager sensorManager;
+	private ArgTable arguments;
+
+	private HashMap<String, ShakeListener> shakeListeners;
 
 	private float x, y, z;
 	private float azimuth, pitch, roll;
@@ -20,20 +25,63 @@ public class AccelListener implements SensorListener{
 //	private long lastUpdate = -1;
 //	private static final int UPDATE_DELAY = 50;
 
-	private long lastRapidAccelChange = -1;
-	private long lastShake = -1;
+//	private long lastRapidAccelChange = -1;
+//	private long lastShake = -1;
 
-	private static final float CHANGE_MAG = (float)7.25;
-	private static final int SHAKE_SPAN = 250;
-	private static final int SHAKE_DELAY = 1000;
+//	private static final float CHANGE_MAG = (float)7.25;
+//	private static final int SHAKE_SPAN = 250;
+//	private static final int SHAKE_DELAY = 1000;
 
-	private static final String SHAKE_CALL = "javascript:navigator.accelerometer.gotShaken();";
+
+	private class ShakeListener {
+		public final String UID;
+		public final float CHANGE_MAG;
+		public final int SHAKE_SPAN;
+		public final int SHAKE_DELAY;
+
+		public long lastRapidAccelChange = -1;
+		public long lastShake = -1;
+		public int x, y, z;
+
+		private static final String SHAKE_CALL = "javascript:navigator.accelerometer.gotShaken();";
 	
-	AccelListener(Context ctx, WebView appView)
+		public ShakeListener(String uid, float changeMag, int shakeSpan, int shakeDelay) {
+			UID = uid;
+			CHANGE_MAG = changeMag;
+			SHAKE_SPAN = shakeSpan;
+			SHAKE_DELAY = shakeDelay;
+
+			this.x = 0;
+			this.y = 0;
+			this.z = 0;
+		}
+
+		private void checkShake(float newX, float newY, float newZ) {
+			float diffX = newX - this.x;
+			float diffY = newY - this.y;
+			float diffZ = newZ - this.z;
+			float totalDiff = (float)Math.sqrt( diffX*diffX + diffY*diffY + diffZ*diffZ );
+			
+			if ( totalDiff >= CHANGE_MAG ) {
+				long curTime = System.currentTimeMillis();
+				if (curTime - lastRapidAccelChange < SHAKE_SPAN && curTime - lastShake > SHAKE_DELAY) {
+					lastShake = curTime;
+					arguments.put("shakeID", UID);
+					mAppView.loadUrl(SHAKE_CALL);
+				}
+				lastRapidAccelChange = curTime;
+			}
+		}
+	}
+
+	AccelListener(Context ctx, WebView appView, ArgTable args)
 	{
 		mCtx = ctx;
 		mAppView = appView;
 		sensorManager = (SensorManager) mCtx.getSystemService(Context.SENSOR_SERVICE);
+		arguments = args;
+
+		shakeListeners = new HashMap<String, ShakeListener>();
 	}
 	
 	public void start()
@@ -54,6 +102,14 @@ public class AccelListener implements SensorListener{
 		
 		sensorManager.unregisterListener(this);
 	}
+
+	public void addShakeListener(String uid, float changeMag, int shakeSpan, int shakeDelay) {
+		shakeListeners.put(uid, new ShakeListener(uid, changeMag, shakeSpan, shakeDelay));
+	}
+
+	public void removeShakeListener(String uid) {
+		shakeListeners.remove(uid);
+	}
 	
 	public void onAccuracyChanged(int sensor, int accuracy) {
 		// This should call the FAIL method
@@ -70,7 +126,7 @@ public class AccelListener implements SensorListener{
 //                        flipVals = 3;
 
                 if (sensor == SensorManager.SENSOR_ACCELEROMETER) {
-			checkShake(values[0], values[1], values[2]);
+			checkShakes(values[0], values[1], values[2]);
                         x = values[0];
                         y = values[1];
                         z = values[2];
@@ -86,19 +142,9 @@ public class AccelListener implements SensorListener{
                 }
         }
 
-	private void checkShake(float newX, float newY, float newZ) {
-		float diffX = newX - x;
-		float diffY = newY - y;
-		float diffZ = newZ - z;
-		float totalDiff = (float)Math.sqrt( diffX*diffX + diffY*diffY + diffZ*diffZ );
-
-		if ( totalDiff >= CHANGE_MAG ) {
-			long curTime = System.currentTimeMillis();
-			if (curTime - lastRapidAccelChange < SHAKE_SPAN && curTime - lastShake > SHAKE_DELAY) {
-				lastShake = curTime;
-				mAppView.loadUrl(SHAKE_CALL);
-			}
-			lastRapidAccelChange = curTime;
+	private void checkShakes(float newX, float newY, float newZ) {
+		for ( ShakeListener listener : shakeListeners.values() ) {
+			listener.checkShake(newX, newY, newZ);
 		}
 	}
 

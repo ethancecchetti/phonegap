@@ -24,7 +24,9 @@ package com.phonegap.demo;
 import java.io.IOException;
 import java.util.TimeZone;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.net.Uri;
@@ -48,6 +50,7 @@ public class PhoneGap {
 	public static String version = "0.2";
 	public static String platform = "Android";
 	public static String uuid;
+//	private Activity mActivity;
 	private Context mCtx;
 	private WebView mAppView;
 	private SmsListener mSmsListener;
@@ -59,6 +62,7 @@ public class PhoneGap {
 	private ArgTable arguments;
     
 	public PhoneGap(Context ctx, WebView appView, AssetManager assets, ArgTable args) {
+//		this.mActivity = activity;
 		this.mCtx = ctx;
 		this.mAppView = appView;
 		this.arguments = args;
@@ -70,6 +74,10 @@ public class PhoneGap {
 		uuid = getUuid();
 		power = (PowerManager) ctx.getSystemService(Context.POWER_SERVICE);
 		lock = null;
+	}
+
+	public void finish() {
+		((android.app.Activity)mCtx).finish();
 	}
 	
 	public void beep(long pattern)
@@ -320,7 +328,23 @@ public class PhoneGap {
     public void stopDTMF() {
     	tones.stopDTMF();
     }
-    
+
+    public void startMusicPlayer() {
+	    Intent i = new Intent(Intent.ACTION_VIEW);
+	    ComponentName comp = new ComponentName("com.android.music", "com.android.music.MusicBrowserActivity");
+	    i.setComponent(comp);
+	    i.addCategory(Intent.CATEGORY_BROWSABLE);
+	    mCtx.startActivity(i);
+    }
+
+/*
+    public void nextSong() {
+	    Intent i = new Intent(com.android.music.MusicPlaybackService.NEXT_ACTION);
+	    i.addCategory(Intent.CATEGORY_BROWSABLE);
+	    mCtx.
+    }
+*/
+
     public String getLine1Number() {
         TelephonyManager tm =
             (TelephonyManager)mCtx.getSystemService(Context.TELEPHONY_SERVICE);

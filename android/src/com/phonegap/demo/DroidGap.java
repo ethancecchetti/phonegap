@@ -98,7 +98,7 @@ public class DroidGap extends Activity {
 	arguments = new ArgTable();
     	gap = new PhoneGap(this, appView, getAssets(), arguments);
     	geo = new GeoBroker(this, appView, arguments);
-    	accel = new AccelListener(this, appView);
+    	accel = new AccelListener(this, appView, arguments);
     	console = new ConsoleOutput(this, appView);
     	// This creates the new javascript interfaces for PhoneGap
     	appView.addJavascriptInterface(gap, "Device");

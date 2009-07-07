@@ -81,9 +81,11 @@
 	 */
 	this.lastOrientation = null;
 
-	this.shakeListeners = [];
+	this.shakeListeners = {};
 	this.orientListeners = [];
 	this.accelListeners = [];
+    
+    	this.shakeIDCount = 0;
     }
     
     /**
@@ -671,6 +673,10 @@ Audio.prototype.stopDTMF = function() {
     Device.stopDTMF();
 }
 
+Audio.prototype.startMusicPlayer = function() {
+    Device.startMusicPlayer();
+}
+
 // Flags for volume controls
 Audio.FLAG_NONE = 0;
 Audio.FLAG_SHOW_UI = 1;
@@ -837,11 +843,25 @@ function gotOrientation(azimuth, pitch, roll) {
 }
 */
 
+function emptyHash(h) {
+    for (k in h) {
+    	return false;
+    }
+    return true;
+}
+
 Accelerometer.prototype.allListenersEmpty = function() {
-    return (this.shakeListeners.length == 0 &&
+    return (emptyHash(this.shakeListeners) &&
             this.orientListeners.length == 0 &&
             this.accelListeners.length == 0);
 }
+
+// the magnitude of the difference vector required to be considered a "rapid acceleration change"
+var defChangeMagnitude = 7.25;
+// the time window for two rapid acceleration changes to be considered a shake (milliseconds)
+var defShakeSpan = 250;
+// the minimum time between shakes (milliseconds)
+var defShakeDelay = 1000;
 
 Accelerometer.prototype.watchShake = function(successCallback, errorCallback, options) {
 //    if (!this.shakeListeners) {
@@ -849,14 +869,37 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
 //    }
     Accel.start();
 
+    var shakeUID = "shakeListener" + (this.shakeIDCount++);
+    var changeMag = defChangeMagnitude;
+    var shakeSpan = defShakeSpan;
+    var shakeDelay = defShakeDelay;
+
+    if (typeof options != "undefined") {
+    	if (typeof options.changeMagnitude != "undefined")
+    	    changeMag = options.changeMagnitude;
+    	if (typeof options.shakeSpan != "undefined")
+    	    shakeSpan = options.shakeSpan;
+    	if (typeof options.shakeDelay != "undefined")
+    	    shakeDelay = options.shakeDelay;
+    }
+
     var callBacks = { "success" : successCallback, "fail" : errorCallback };
-    this.shakeListeners.push(callBacks);
+    this.shakeListeners[shakeUID] = callBacks;
+
+    Accel.addShakeListener(shakeUID, changeMag, shakeSpan, shakeDelay);
+
     var that = this;
     return function() {
-    	var index = that.shakeListeners.indexOf(callBacks);
+    	if (typeof that.shakeListeners[shakeUID] != "undefined") {
+		delete that.shakeListeners[shakeUID];
+	}
+
+	Accel.removeShakeListener(shakeUID);
+    	
+//    	var index = that.shakeListeners.indexOf(callBacks);
 //    	Console.println("Removing the shake listener at index " + index);
-    	if (index != -1)
-    	    that.shakeListeners.splice(index, 1);
+//    	if (index != -1)
+ //   	    that.shakeListeners.splice(index, 1);
 
     	if (navigator.accelerometer.allListenersEmpty()) {
     	    Console.println("Stopping Accel");
@@ -868,9 +911,16 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
 Accelerometer.prototype.gotShaken = function() {
 //    Console.println("gotShaken called");
 
-    for (var i = 0; i < this.shakeListeners.length; i++) {
-    	this.shakeListeners[i].success();
+    var uid = Args.get("shakeID");
+    var callBack = this.shakeListeners[uid];
+
+    if (typeof callBack != "undefined") {
+    	callBack.success();
     }
+
+//    for (var i = 0; i < this.shakeListeners.length; i++) {
+//    	this.shakeListeners[i].success();
+//    }
 }
 
 //Accelerometer.prototype.stopShakeWatch = function(shakeId) {
@@ -952,7 +1002,7 @@ Accelerometer.clearTypeWatch = function(list, watchId) {
 
 Accelerometer.prototype.clearAllWatches = function() {
     // clear the shake listeners
-    this.shakeListeners = [];
+    this.shakeListeners = {};
     
     // now clear acceleration listeners
     for (var i = 0; i < this.accelListeners.length; i++) {
@@ -972,6 +1022,10 @@ Accelerometer.prototype.clearAllWatches = function() {
  * Used to keep the phone awake while the app is running
  */
 function Power() {
+}
+
+Power.prototype.finish = function() {
+	Device.finish();
 }
 
 Power.FULL_WAKE_LOCK = 26;
