@@ -158,7 +158,7 @@ public class AccelListener implements SensorListener{
 		}
 
 		if (shakenListeners.size() > 0) {
-			arguments.put("shakeIDs", shakenListeners);//.iterator());
+			arguments.put("shakeIDs", shakenListeners);
 			mAppView.loadUrl(SHAKE_CALL);
 		}
 	}
