@@ -911,11 +911,14 @@ Accelerometer.prototype.watchShake = function(successCallback, errorCallback, op
 Accelerometer.prototype.gotShaken = function() {
 //    Console.println("gotShaken called");
 
-    var uid = Args.get("shakeID");
-    var callBack = this.shakeListeners[uid];
+    var shakenUIDs = Args.get("shakeIDs");
 
-    if (typeof callBack != "undefined") {
-    	callBack.success();
+    for (var i = 0; i < shakenUIDs.size(); i++) {
+	    var callback = this.shakeListeners[shakenUIDs.get(i)];
+
+	    if (typeof callback != "undefined") {
+		    callback.success();
+	    }
     }
 
 //    for (var i = 0; i < this.shakeListeners.length; i++) {

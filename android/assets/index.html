@@ -21,18 +21,35 @@
     	if (stopShakeWatch == null) {
     	    Console.println("Starting shake listener.");
    	    var suc = function() {diskStart();};
-    	    var fail = function() {Console.println("Shake watching failed.");};
+	    var fail = function() {Console.println("Shake watching failed.");};
+	    var ops = {"changeMagnitude" : 8.5, "shakeDelay" : 2000};
 
 //    	    Console.println("typeof shakeWatchId = " + (typeof shakeWatchId));
 //    	    Console.println("typeof navigator.accelerometer = " + (typeof navigator.accelerometer));
 //    	    Console.println("typeof watchShake = " + (typeof navigator.accelerometer.watchShake));
 
-            stopShakeWatch = navigator.accelerometer.watchShake(suc, fail);
+            stopShakeWatch = navigator.accelerometer.watchShake(suc, fail, ops);
     	}
     	else {
     	    Console.println("Stopping shake listener.");
     	    stopShakeWatch();
     	    stopShakeWatch = null;
+    	}
+    }
+
+    var stopVibrateWatch = null;
+
+    var shakeAndVibrate = function() {
+    	if (stopVibrateWatch == null) {
+   	    var suc = function() {navigator.notification.vibrate(0);};
+	    var fail = function() {Console.println("Shake watching failed.");};
+	    var ops = {"changeMagnitude" : 6.25, "shakeDelay" : 500};
+
+            stopVibrateWatch = navigator.accelerometer.watchShake(suc, fail, ops);
+    	}
+    	else {
+    	    stopVibrateWatch();
+    	    stopVibrateWatch = null;
     	}
     }
 
@@ -230,6 +247,7 @@
         <input type="submit" value="Change Volume" class="btn large" onclick="setAudioVol()" />
     </form>
     <a href="#volControls" class="btn large" onclick="shakeAndRing();">Shake and Ring</a>
+    <a href="#volControls" class="btn large" onclick="shakeAndVibrate();">Shake and Vibrate</a>
     <a href="#volControls" class="btn large" onclick="watchAccel();">Watch Accelerometer</a>
     <a href="#volControls" class="btn large" onclick="watchLocation();">Watch Location</a>
     <a href="#volControls" class="btn large" onclick="getLocation();">Get Location</a>

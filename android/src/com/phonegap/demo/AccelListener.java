@@ -8,6 +8,7 @@ import android.content.Context;
 import android.hardware.SensorListener;
 import android.webkit.WebView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AccelListener implements SensorListener{
@@ -32,6 +33,8 @@ public class AccelListener implements SensorListener{
 //	private static final int SHAKE_SPAN = 250;
 //	private static final int SHAKE_DELAY = 1000;
 
+	private static final String SHAKE_CALL = "javascript:navigator.accelerometer.gotShaken();";
+	
 
 	private class ShakeListener {
 		public final String UID;
@@ -39,24 +42,25 @@ public class AccelListener implements SensorListener{
 		public final int SHAKE_SPAN;
 		public final int SHAKE_DELAY;
 
-		public long lastRapidAccelChange = -1;
-		public long lastShake = -1;
-		public int x, y, z;
+		private long lastRapidAccelChange = -1;
+		private long lastShake = -1;
+		private float x, y, z;
 
-		private static final String SHAKE_CALL = "javascript:navigator.accelerometer.gotShaken();";
+		public ShakeListener(String uid, float changeMag, int shakeSpan, int shakeDelay, float initX, float initY, float initZ) {
+//			System.out.println("New ShakeListener " + uid + " created with mag " + changeMag +
+//					", span " + shakeSpan + ", delay " + shakeDelay);
 	
-		public ShakeListener(String uid, float changeMag, int shakeSpan, int shakeDelay) {
 			UID = uid;
 			CHANGE_MAG = changeMag;
 			SHAKE_SPAN = shakeSpan;
 			SHAKE_DELAY = shakeDelay;
 
-			this.x = 0;
-			this.y = 0;
-			this.z = 0;
+			this.x = initX;
+			this.y = initY;
+			this.z = initZ;
 		}
 
-		private void checkShake(float newX, float newY, float newZ) {
+		private void checkShake(float newX, float newY, float newZ, ArrayList<String> shakenListeners) {
 			float diffX = newX - this.x;
 			float diffY = newY - this.y;
 			float diffZ = newZ - this.z;
@@ -66,11 +70,16 @@ public class AccelListener implements SensorListener{
 				long curTime = System.currentTimeMillis();
 				if (curTime - lastRapidAccelChange < SHAKE_SPAN && curTime - lastShake > SHAKE_DELAY) {
 					lastShake = curTime;
-					arguments.put("shakeID", UID);
-					mAppView.loadUrl(SHAKE_CALL);
+					shakenListeners.add(UID);
+//					arguments.put("shakeID", UID);
+//					mAppView.loadUrl(SHAKE_CALL);
 				}
 				lastRapidAccelChange = curTime;
 			}
+
+			this.x = newX;
+			this.y = newY;
+			this.z = newZ;
 		}
 	}
 
@@ -104,7 +113,7 @@ public class AccelListener implements SensorListener{
 	}
 
 	public void addShakeListener(String uid, float changeMag, int shakeSpan, int shakeDelay) {
-		shakeListeners.put(uid, new ShakeListener(uid, changeMag, shakeSpan, shakeDelay));
+		shakeListeners.put(uid, new ShakeListener(uid, changeMag, shakeSpan, shakeDelay, x, y, z));
 	}
 
 	public void removeShakeListener(String uid) {
@@ -143,8 +152,14 @@ public class AccelListener implements SensorListener{
         }
 
 	private void checkShakes(float newX, float newY, float newZ) {
+		ArrayList<String> shakenListeners = new ArrayList<String>();
 		for ( ShakeListener listener : shakeListeners.values() ) {
-			listener.checkShake(newX, newY, newZ);
+			listener.checkShake(newX, newY, newZ, shakenListeners);
+		}
+
+		if (shakenListeners.size() > 0) {
+			arguments.put("shakeIDs", shakenListeners);//.iterator());
+			mAppView.loadUrl(SHAKE_CALL);
 		}
 	}
 
