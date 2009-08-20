@@ -347,7 +347,7 @@
     	/**
     	 * The last known GPS position.
     	 */
-    	this.lastPosition = null;
+    	this.lastPosition = {latitude: 0, longitude: 0};
 
 	this.listeners = [];
     }
@@ -365,6 +365,15 @@
     	// If the position is available then call success
     	// If the position is not available then call error
     }
+
+
+
+// getDistanceBetween: number number number number -> number
+// Returns the distance in meters between the two latitude/longitude pairs.
+Geolocation.prototype.getDistanceBetween = function(lat1, long1, lat2, long2) {
+    return Geo.getDistanceBetween(lat1, long1, lat2, long2);
+}
+
     
     /**
      * Asynchronously aquires the position repeatedly at a given interval.
@@ -749,7 +758,7 @@ Geolocation.prototype.watchPosition = function(successCallback, errorCallback, o
  * Retrieve and stop this listener from listening to the GPS
  *
  */
-Geolocation.prototype.success = function(key, lat, lng)
+Geolocation.prototype.success = function()
 {
     var key = Args.get("gpsId");
     var lat = Args.get("gpsLat");
@@ -758,17 +767,20 @@ Geolocation.prototype.success = function(key, lat, lng)
     Console.println("Success for finding location " + lat + ", " + lng + " with key " + key);
 //    Console.println("typeof this.listeners = " + (typeof this.listeners));
 
-    if (key == null) {
-	    Console.logd("PhoneGap", "Geolocation key undefined in Geolocation.success");
+    if (typeof key == "undefined" || key == null) {
+    	Console.logd("PhoneGap", "Geolocation key undefined in Geolocation.success");
     }
-    else if (lat == null || lng == null) {
-	    this.listeners[key].fail();
+    else if (typeof lat == "undefined" || typeof lng == "undefined" ||
+    	     lat == null || lng == null) {
+    	this.listeners[key].fail();
     }
-
-    p = {};
-    p.latitude = lat;
-    p.longitude = lng;
-    this.listeners[key].success(p);
+    else {
+    	p = {};
+    	p.latitude = lat;
+    	p.longitude = lng;
+    	this.lastPosition = p;
+    	this.listeners[key].success(p);
+    }
 }
 
 Geolocation.prototype.fail = function(key)
@@ -1036,6 +1048,8 @@ Power.PARTIAL_WAKE_LOCK = 1;
 Power.SCREEN_BRIGHT_WAKE_LOCK = 10;
 Power.SCREEN_DIM_WAKE_LOCK = 6;
 
+
+// setWakeLock: (or undefined number) -> void
 Power.prototype.setWakeLock = function(flags) {
 //    Console.println("Setting a wake lock");
     var lockType = (typeof flags == "undefined")? Power.SCREEN_DIM_WAKE_LOCK : flags;

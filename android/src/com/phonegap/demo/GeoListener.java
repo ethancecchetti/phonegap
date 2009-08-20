@@ -2,6 +2,7 @@ package com.phonegap.demo;
 
 import android.content.Context;
 import android.location.Location;
+import android.util.Log;
 import android.webkit.WebView;
 
 public class GeoListener {
@@ -36,6 +37,8 @@ public class GeoListener {
 		 */
 		if(id != "global")
 		{
+			Lod.d("PhoneGap", "GeoListener calling geolocation success with location " +
+					loc.getLatitude() + ", " + loc.getLongitued() + " and key " + id);
 			arguments.put("gpsId", id);
 			mAppView.loadUrl("javascript:navigator.geolocation.success()");
 		}
